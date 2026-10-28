@@ -1,0 +1,3280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mini PWA Engine</title>
+<meta name="description" content="A visual builder for small, dependency-free progressive web apps. It writes the app's own code, plus servers, a database and a terminal version when the app needs them.">
+<meta name="theme-color" content="#151a24">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%23151a24'/%3E%3Crect%20x='12'%20y='13'%20width='40'%20height='9'%20rx='3'%20fill='%237aa2ff'/%3E%3Crect%20x='12'%20y='27'%20width='18'%20height='24'%20rx='3'%20fill='%235bd18b'/%3E%3Crect%20x='34'%20y='27'%20width='18'%20height='10'%20rx='3'%20fill='%23ffc94a'/%3E%3Crect%20x='34'%20y='41'%20width='18'%20height='10'%20rx='3'%20fill='%23ff7bb0'/%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.json">
+<style>
+:root {
+  --bg: #0f1218; --panel: #171b24; --panel2: #1f2430; --line: #2b3140; --text: #e7eaf0; --muted: #97a0b2;
+  --accent: #7aa2ff; --accent-text: #0b1020; --good: #5bd18b; --bad: #ff7b7b; --warn: #ffc94a;
+  --code: #0b0e13; --stage: #0b0d12; --radius: 8px; color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f3f4f8; --panel: #ffffff; --panel2: #eef0f5; --line: #d8dce5; --text: #1c2030; --muted: #5b6375;
+    --accent: #2f62d0; --accent-text: #ffffff; --good: #1b8549; --bad: #c62f2f; --warn: #9a6500;
+    --code: #f7f8fb; --stage: #e4e7ee; color-scheme: light;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg); color: var(--text); font: 13px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  display: grid; grid-template-rows: auto 1fr; height: 100dvh; overflow: hidden;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button {
+  background: var(--panel2); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; cursor: pointer;
+}
+button:hover:not(:disabled) { border-color: var(--muted); }
+button:disabled { opacity: .45; cursor: default; }
+button.primary { background: var(--accent); color: var(--accent-text); border-color: transparent; font-weight: 600; }
+button.link { background: none; border: 0; padding: 0; color: var(--muted); text-decoration: underline; }
+button.icon { padding: 2px 7px; min-width: 26px; }
+button.danger { color: var(--bad); }
+input, select, textarea {
+  background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 5px 7px; width: 100%; min-width: 0;
+}
+input[type=checkbox], input[type=radio] { width: auto; }
+input[type=color] { padding: 1px; width: 32px; height: 28px; flex: none; }
+textarea { resize: vertical; }
+.mono, textarea.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+input.bad { border-color: var(--bad); }
+a { color: var(--accent); }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+
+/* ---------------------------------------------------------------- top bar */
+.bar {
+  display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: var(--panel);
+  border-bottom: 1px solid var(--line); flex-wrap: wrap;
+}
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; margin-right: 6px; white-space: nowrap; }
+.brand img { width: 22px; height: 22px; }
+.bar .spacer { flex: 1; }
+.bar .appname { color: var(--muted); max-width: 30ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------------------------------------------------------------- panes */
+.work { display: grid; grid-template-columns: 280px minmax(0, 1fr) 310px; min-height: 0; }
+.pane { background: var(--panel); min-height: 0; display: flex; flex-direction: column; }
+.pane.left { border-right: 1px solid var(--line); }
+.pane.right { border-left: 1px solid var(--line); }
+.pane .scroll { overflow: auto; flex: 1; padding: 10px; min-height: 0; }
+.tabs { display: flex; gap: 2px; padding: 6px 6px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.tabs button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; padding: 6px 9px; color: var(--muted); }
+.tabs button[aria-selected=true] { color: var(--text); border-bottom-color: var(--accent); }
+.center { display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--stage); }
+.center .tabs { background: var(--panel); align-items: center; }
+.center .tabs .spacer { flex: 1; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; margin: 0 0 4px 4px; }
+.seg button { border: 0; border-radius: 0; background: none; padding: 3px 8px; color: var(--muted); }
+.seg button[aria-pressed=true] { background: var(--panel2); color: var(--text); }
+h3.sec { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 14px 0 6px; }
+h3.sec:first-child { margin-top: 0; }
+
+/* ---------------------------------------------------------------- palette */
+.palette { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 6px; }
+.palette button {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; font-size: 12px;
+}
+.palette button b { font-size: 16px; line-height: 1.1; font-weight: 600; }
+
+/* ---------------------------------------------------------------- layers */
+.tree { list-style: none; margin: 0; padding: 0; }
+.tree li {
+  display: flex; align-items: center; gap: 6px; padding: 4px 6px 4px calc(6px + var(--d) * 14px);
+  border-radius: 5px; cursor: pointer; white-space: nowrap; overflow: hidden; border: 1px solid transparent;
+}
+.tree li:hover { background: var(--panel2); }
+.tree li.on { background: var(--panel2); border-color: var(--accent); }
+.tree li .ic { width: 18px; text-align: center; color: var(--muted); flex: none; }
+.tree li .nm { overflow: hidden; text-overflow: ellipsis; }
+.tree li .hint { color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
+.tree li.drop-before { box-shadow: inset 0 2px 0 var(--accent); }
+.tree li.drop-after { box-shadow: inset 0 -2px 0 var(--accent); }
+.tree li.drop-inside { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+
+/* ---------------------------------------------------------------- forms in panels */
+.f { display: flex; flex-direction: column; gap: 3px; margin: 0 0 9px; }
+.f > span { font-size: 12px; color: var(--muted); }
+.f .hint { font-size: 11px; color: var(--muted); }
+.f.check { flex-direction: row; align-items: center; gap: 7px; }
+.f.check > span { color: var(--text); font-size: 13px; }
+.inline { display: flex; gap: 6px; align-items: center; }
+.box { border: 1px solid var(--line); border-radius: var(--radius); padding: 9px; margin: 0 0 10px; background: var(--panel2); }
+.box > .head { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.box > .head b { flex: 1; }
+.rows { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
+.rows .r { display: grid; gap: 5px; align-items: center; }
+.btnrow { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+.step { border: 1px solid var(--line); border-radius: 6px; padding: 7px; margin-bottom: 6px; background: var(--panel); }
+.step .head { display: flex; gap: 5px; align-items: center; margin-bottom: 6px; }
+.step .head select { flex: 1; }
+.names { font-size: 11px; color: var(--muted); margin: -2px 0 10px; line-height: 1.6; }
+.names code { background: var(--panel2); border-radius: 4px; padding: 0 4px; }
+.seed { overflow: auto; }
+.seed table { border-collapse: collapse; font-size: 12px; }
+.seed td, .seed th { padding: 2px; text-align: left; font-weight: normal; color: var(--muted); }
+.seed input { min-width: 90px; padding: 3px 5px; }
+details > summary { cursor: pointer; color: var(--muted); margin: 6px 0; }
+.empty-note { color: var(--muted); padding: 6px 2px; }
+.pagerow { display: grid; grid-template-columns: auto 1fr 1fr auto; gap: 5px; align-items: center; margin-bottom: 5px; }
+
+/* ---------------------------------------------------------------- stage */
+.stage { flex: 1; min-height: 0; display: flex; justify-content: center; padding: 14px; overflow: auto; }
+.device {
+  width: 100%; height: 100%; background: #fff; border-radius: 10px; overflow: hidden;
+  box-shadow: 0 0 0 1px var(--line), 0 10px 30px rgba(0, 0, 0, .25); flex: none;
+}
+.device.phone { width: 390px; max-width: 100%; border-radius: 26px; }
+.device.tablet { width: 820px; max-width: 100%; border-radius: 18px; }
+.device iframe { width: 100%; height: 100%; border: 0; display: block; background: #fff; }
+.console {
+  background: var(--code); border-top: 1px solid var(--line); font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  max-height: 120px; overflow: auto; flex: none;
+}
+.console .head { display: flex; align-items: center; gap: 8px; padding: 3px 8px; position: sticky; top: 0; background: var(--code); color: var(--muted); }
+.console .head .spacer { flex: 1; }
+.console ul { list-style: none; margin: 0; padding: 0 8px 4px; }
+.console li { white-space: pre-wrap; word-break: break-word; border-top: 1px solid var(--line); padding: 2px 0; }
+.console li.warn { color: var(--warn); }
+.console li.error { color: var(--bad); }
+
+/* ---------------------------------------------------------------- code + terminal */
+.codeview { flex: 1; min-height: 0; display: grid; grid-template-columns: 220px minmax(0, 1fr); background: var(--panel); }
+.files { border-right: 1px solid var(--line); overflow: auto; padding: 6px; }
+.files button { display: flex; justify-content: space-between; gap: 6px; width: 100%; text-align: left; border: 0; background: none; padding: 4px 6px; }
+.files button[aria-selected=true] { background: var(--panel2); }
+.files button span:last-child { color: var(--muted); font-size: 11px; }
+.files .grp { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin: 8px 6px 2px; }
+.filebody { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.filebody .head { display: flex; gap: 6px; align-items: center; padding: 6px 10px; border-bottom: 1px solid var(--line); }
+.filebody .head b { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.filebody pre {
+  margin: 0; flex: 1; overflow: auto; padding: 10px 12px; background: var(--code);
+  font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; tab-size: 2;
+}
+.terminal { flex: 1; min-height: 0; display: flex; flex-direction: column; background: #0b0d12; color: #d6f5d6; padding: 10px; }
+.terminal .note { color: #8a93a6; margin: 0 0 8px; font-size: 12px; }
+.terminal pre { flex: 1; overflow: auto; margin: 0; font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; }
+.terminal form { display: flex; gap: 6px; margin-top: 8px; }
+.terminal input { background: #12161e; color: #d6f5d6; border-color: #2b3140; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.terminal button { background: #1f2430; color: #e7eaf0; border-color: #2b3140; }
+
+/* ---------------------------------------------------------------- dialogs */
+dialog {
+  background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 10px;
+  padding: 16px 18px; width: min(620px, calc(100vw - 24px)); max-height: calc(100dvh - 32px); overflow: auto;
+}
+dialog::backdrop { background: rgba(0, 0, 0, .55); }
+dialog h2 { margin: 0 0 8px; font-size: 17px; }
+dialog h3 { margin: 14px 0 6px; font-size: 13px; }
+dialog p { margin: 0 0 8px; }
+dialog .row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+dialog .row .spacer { flex: 1; }
+.templates { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+.templates button { text-align: left; padding: 10px; display: flex; flex-direction: column; gap: 4px; }
+.templates button b { font-size: 14px; }
+.templates button span { color: var(--muted); font-size: 12px; }
+.targets label { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 8px; }
+.targets label input { margin-top: 3px; }
+.targets label small { display: block; color: var(--muted); }
+.filelist { font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; max-height: 180px; overflow: auto; white-space: pre; }
+.about-log { margin: 0; padding: 0; list-style: none; font-size: 13px; }
+.about-log li { margin: 0 0 4px; }
+.about-log time { color: var(--muted); margin-right: 8px; font-variant-numeric: tabular-nums; }
+.toast {
+  position: fixed; left: 50%; bottom: 60px; transform: translateX(-50%); background: var(--text); color: var(--bg);
+  padding: 7px 14px; border-radius: 8px; z-index: 50; box-shadow: 0 6px 20px rgba(0, 0, 0, .3); max-width: calc(100vw - 32px);
+}
+
+/* ---------------------------------------------------------------- narrow screens: one pane at a time */
+.mobile-tabs { display: none; }
+@media (max-width: 900px) {
+  body { grid-template-rows: auto 1fr auto; }
+  .work { grid-template-columns: minmax(0, 1fr); }
+  .pane.left, .pane.right, .center { display: none; border: 0; }
+  body[data-pane=build] .pane.left, body[data-pane=inspect] .pane.right { display: flex; }
+  body[data-pane=preview] .center { display: flex; }
+  .mobile-tabs { display: flex; border-top: 1px solid var(--line); background: var(--panel); padding-bottom: env(safe-area-inset-bottom); }
+  .mobile-tabs button { flex: 1; border: 0; border-radius: 0; background: none; padding: 10px 4px; color: var(--muted); }
+  .mobile-tabs button[aria-selected=true] { color: var(--text); box-shadow: inset 0 2px 0 var(--accent); }
+  .bar .appname, .bar .hide-narrow { display: none; }
+  .bar { gap: 4px; padding: 6px 8px; }
+  .bar button:not(.icon):not(.link) { padding: 5px 8px; }
+  .brand { margin-right: 0; }
+  .codeview { grid-template-columns: minmax(0, 1fr); grid-template-rows: 150px minmax(0, 1fr); }
+  .files { border-right: 0; border-bottom: 1px solid var(--line); }
+  .stage { padding: 8px; }
+}
+</style>
+</head>
+<body data-pane="preview">
+
+<header class="bar">
+  <div class="brand"><img src="icon.svg" alt=""><span class="hide-narrow">Mini PWA Engine</span></div>
+  <span class="appname" id="appTitle"></span>
+  <span class="spacer"></span>
+  <button id="undoBtn" class="icon" title="Undo (Ctrl+Z)" aria-label="Undo">↶</button>
+  <button id="redoBtn" class="icon" title="Redo (Ctrl+Shift+Z)" aria-label="Redo">↷</button>
+  <button id="newBtn">New</button>
+  <button id="openBtn" title="Open a saved project (.json)">Open</button>
+  <button id="saveBtn" title="Save the project as a .json file">Save</button>
+  <button id="exportBtn" class="primary">Export</button>
+  <button id="aboutBtn" class="link">About</button>
+  <input type="file" id="openFile" accept=".json,application/json" hidden>
+</header>
+
+<div class="work">
+  <aside class="pane left" aria-label="Build">
+    <div class="tabs" role="tablist" id="leftTabs">
+      <button role="tab" data-tab="add">Add</button>
+      <button role="tab" data-tab="layers">Layers</button>
+      <button role="tab" data-tab="pages">Pages</button>
+      <button role="tab" data-tab="data">Data</button>
+      <button role="tab" data-tab="app">App</button>
+    </div>
+    <div class="scroll" id="leftBody"></div>
+  </aside>
+
+  <section class="center" aria-label="Preview">
+    <div class="tabs" role="tablist" id="centerTabs">
+      <button role="tab" data-view="design">Design</button>
+      <button role="tab" data-view="code">Code</button>
+      <button role="tab" data-view="terminal">Terminal</button>
+      <span class="spacer"></span>
+      <span id="designTools">
+        <span class="seg" id="modeSeg"><button data-mode="select" title="Click parts of the app to select them">Select</button><button data-mode="interact" title="Use the app as it will run">Use</button></span>
+        <span class="seg" id="deviceSeg"><button data-device="phone">Phone</button><button data-device="tablet">Tablet</button><button data-device="desktop">Wide</button></span>
+      </span>
+    </div>
+    <div class="stage" id="designView"><div class="device" id="device"><iframe id="frame" title="App preview"></iframe></div></div>
+    <div class="console" id="console">
+      <div class="head"><span>Console</span><span class="spacer"></span><button class="link" id="resetData" title="Forget data the preview saved on this device">Reset preview data</button><button class="link" id="clearConsole">Clear</button></div>
+      <ul id="consoleList"></ul>
+    </div>
+    <div class="codeview" id="codeView" hidden>
+      <div class="files" id="fileList"></div>
+      <div class="filebody">
+        <div class="head"><b id="fileName"></b><button id="copyFile">Copy</button><button id="downloadFile">Download</button></div>
+        <pre id="fileText"></pre>
+      </div>
+    </div>
+    <div class="terminal" id="terminalView" hidden>
+      <p class="note">The same app as a text program: state, data and actions are shared with the web version, the screen is drawn as text and buttons become a numbered menu. Export includes it as <code>cli/app.js</code> for Node.</p>
+      <pre id="termOut" aria-live="polite"></pre>
+      <form id="termForm"><input id="termIn" autocomplete="off" aria-label="Terminal input" placeholder="Type a number, then Enter"><button type="submit">Enter</button><button type="button" id="termRestart">Restart</button></form>
+    </div>
+  </section>
+
+  <aside class="pane right" aria-label="Inspector">
+    <div class="tabs"><button aria-selected="true" tabindex="-1">Inspector</button></div>
+    <div class="scroll" id="inspector"></div>
+  </aside>
+</div>
+
+<nav class="mobile-tabs" id="mobileTabs">
+  <button data-pane="build">Build</button>
+  <button data-pane="preview">Preview</button>
+  <button data-pane="inspect">Inspect</button>
+</nav>
+
+<dialog id="newDlg" aria-labelledby="newTitle">
+  <h2 id="newTitle">Start a new app</h2>
+  <p class="muted">Each starter is an ordinary project: change anything. Your current project is replaced, so save it first if you want to keep it.</p>
+  <div class="templates" id="templateList"></div>
+  <div class="row"><button id="newClose">Cancel</button></div>
+</dialog>
+
+<dialog id="exportDlg" aria-labelledby="exportTitle">
+  <h2 id="exportTitle">Export</h2>
+  <p>The app itself is plain files: put the folder on GitHub Pages (or any static host) and it runs. It installs as a progressive web app and, if offline is on, works without a connection.</p>
+  <h3>Also generate</h3>
+  <div class="targets" id="targetList"></div>
+  <h3>Files</h3>
+  <div class="filelist" id="exportFiles"></div>
+  <div class="row">
+    <button id="exportHtml" title="Only index.html, for a quick share. No offline support or install.">index.html only</button>
+    <span class="spacer"></span>
+    <button id="exportClose">Close</button>
+    <button id="exportZip" class="primary">Download .zip</button>
+  </div>
+</dialog>
+
+<dialog id="aboutDlg" aria-labelledby="aboutTitle">
+  <h2 id="aboutTitle">About Mini PWA Engine</h2>
+  <p>A visual builder for small progressive web apps, in one dependency-free page. Lay out the screen, connect data, describe what buttons do; the engine writes the app's own code (no framework to install), a service worker and a manifest. When the app needs them it also writes web, API and application servers, a database schema, setup notes, and a terminal version of the same app.</p>
+  <p>Projects are kept in this browser. Use Save to keep a copy as a file.</p>
+  <p><a href="https://github.com/sonusario/mini_pwa_engine" target="_blank" rel="noopener">Source on GitHub</a> ·
+     <a href="https://sonusario.github.io/" target="_blank" rel="noopener">More projects (Sonusario's Selects)</a></p>
+  <h3>Changes</h3>
+  <ul class="about-log" id="aboutLog"><li class="muted">Loading changes…</li></ul>
+  <div class="row"><button id="aboutClose">Close</button></div>
+</dialog>
+
+<!--
+  Code templates. The engine copies these into the apps it generates, filling in
+  the @@NAME@@ markers. They are kept as plain text here so they read like the
+  files they become.
+-->
+
+<script type="text/plain" id="t-dom">
+// --- The "framework": a few helpers that build and update the page.
+
+// h('button', { class: 'btn', onclick }, 'Label') makes an element.
+function h(tag, props, ...kids) {
+  const el = document.createElement(tag);
+  for (const key in props) {
+    const value = props[key];
+    if (key === 'value' || key === 'checked' || value == null || value === false) continue;
+    if (key.startsWith('on')) el[key] = value;
+    else el.setAttribute(key, value === true ? '' : value);
+  }
+  for (const kid of kids.flat()) if (kid != null && kid !== false) el.append(kid instanceof Node ? kid : String(kid));
+  if (props && 'value' in props) { el.value = props.value ?? ''; el.bound = true; }
+  if (props && 'checked' in props) { el.checked = !!props.checked; el.bound = true; }
+  return el;
+}
+
+// morph(old, next) changes the page in place to look like `next`, so focus,
+// typing and scroll positions survive a re-render.
+const EVENTS = ['onclick', 'oninput', 'onchange', 'onkeydown', 'onsubmit'];
+function morph(a, b) {
+  if (a.nodeName !== b.nodeName) return a.replaceWith(b);
+  if (a.nodeType !== 1) { if (a.data !== b.data) a.data = b.data; return; }
+  for (const { name } of [...a.attributes]) if (!b.hasAttribute(name)) a.removeAttribute(name);
+  for (const { name, value } of b.attributes) if (a.getAttribute(name) !== value) a.setAttribute(name, value);
+  for (const on of EVENTS) a[on] = b[on];
+  const old = [...a.childNodes], next = [...b.childNodes];
+  next.forEach((child, i) => (i < old.length ? morph(old[i], child) : a.append(child)));
+  old.slice(next.length).forEach(child => child.remove());
+  if (b.bound) {
+    if ('checked' in b && a.checked !== b.checked) a.checked = b.checked;
+    if (a.value !== b.value) a.value = b.value;
+  }
+}
+
+// render() redraws the app from S. Calls in the same moment are batched.
+const root = document.getElementById('app');
+let queued = false;
+function render() {
+  if (queued) return;
+  queued = true;
+  Promise.resolve().then(() => {
+    queued = false;
+    try {
+      const next = view();
+      if (root.firstChild) morph(root.firstChild, next); else root.append(next);
+    } catch (error) {
+      console.error(error);
+    }
+  });
+}
+
+function toast(message) {
+  const note = h('div', { class: 'toast', role: 'status' }, message);
+  document.body.append(note);
+  setTimeout(() => note.remove(), 2600);
+}
+
+function fail(error) {
+  console.error(error);
+  toast((error && error.message) || String(error));
+}
+</script>
+
+<script type="text/plain" id="t-sw">
+// Service worker for @@NAME@@: keeps the app working offline.
+// Pages are network-first (so updates show up), other files are cache-first and
+// refreshed in the background. API requests always go to the network.
+
+const CACHE = '@@CACHE@@';
+const FILES = @@FILES@@;
+
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES)).then(() => self.skipWaiting()));
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys()
+      .then(names => Promise.all(names.filter(name => name !== CACHE).map(name => caches.delete(name))))
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  const url = new URL(request.url);
+  if (request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.includes('/api/')) return;
+
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          const copy = response.clone();
+          caches.open(CACHE).then(cache => cache.put('./index.html', copy));
+          return response;
+        })
+        .catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
+
+  event.respondWith(
+    caches.match(request).then(cached => {
+      const fresh = fetch(request).then(response => {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE).then(cache => cache.put(request, copy));
+        }
+        return response;
+      }).catch(() => cached || Response.error());
+      return cached || fresh;
+    })
+  );
+});
+</script>
+
+<script type="text/plain" id="t-static">
+// Serves the app's files (index.html, sw.js, manifest.json, icons) from the
+// folder above server/. Only top-level files are public, so the server/ and
+// cli/ folders and their data stay private.
+
+const fs = require('node:fs');
+const path = require('node:path');
+
+const ROOT = path.join(__dirname, '..', '..');
+const TYPES = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.webmanifest': 'application/manifest+json',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.ico': 'image/x-icon',
+  '.txt': 'text/plain; charset=utf-8',
+};
+const PRIVATE = new Set(['package.json', 'package-lock.json']);
+
+function serveStatic(req, res) {
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    res.writeHead(405, { Allow: 'GET, HEAD' });
+    return res.end();
+  }
+  let name;
+  try {
+    name = decodeURIComponent(new URL(req.url, 'http://localhost').pathname).replace(/^\/+/, '') || 'index.html';
+  } catch {
+    res.writeHead(400);
+    return res.end('Bad request');
+  }
+  // Anything that isn't a top-level app file gets the app itself.
+  if (/[/\\]/.test(name) || name.startsWith('.') || PRIVATE.has(name) || !TYPES[path.extname(name)]) name = 'index.html';
+  fs.readFile(path.join(ROOT, name), (error, data) => {
+    if (error) {
+      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+      return res.end('Not found');
+    }
+    res.writeHead(200, {
+      'Content-Type': TYPES[path.extname(name)],
+      'Cache-Control': name === 'index.html' || name === 'sw.js' ? 'no-cache' : 'public, max-age=3600',
+      'X-Content-Type-Options': 'nosniff',
+    });
+    res.end(req.method === 'HEAD' ? undefined : data);
+  });
+}
+
+module.exports = { serveStatic };
+</script>
+
+<script type="text/plain" id="t-api">
+// REST API for the app's "Server API" collections:
+//   GET    /api                     names of the collections
+//   GET    /api/<collection>        list the rows
+//   POST   /api/<collection>        add a row
+//   GET    /api/<collection>/<id>   one row
+//   PATCH  /api/<collection>/<id>   change some fields (PUT replaces them all)
+//   DELETE /api/<collection>/<id>   delete a row
+// Bodies are JSON. Unknown fields are dropped and values are converted to the
+// field's type, so the store only ever sees clean rows.
+
+const crypto = require('node:crypto');
+const store = require('./store');
+const hooks = require('./hooks');
+const { TABLES } = require('./schema');
+
+const EMPTY = { text: '', longtext: '', email: '', url: '', date: '', number: 0, boolean: false };
+
+function httpError(status, message) {
+  return Object.assign(new Error(message), { status });
+}
+
+function convert(type, value) {
+  if (type === 'number') {
+    const number = Number(value);
+    if (!Number.isFinite(number)) throw httpError(400, 'Expected a number');
+    return number;
+  }
+  if (type === 'boolean') return value === true || value === 'true' || value === 1 || value === '1';
+  return value == null ? '' : String(value);
+}
+
+function clean(table, body, partial) {
+  const row = {};
+  for (const [field, type] of Object.entries(TABLES[table])) {
+    if (Object.hasOwn(body, field)) row[field] = convert(type, body[field]);
+    else if (!partial) row[field] = EMPTY[type];
+  }
+  return row;
+}
+
+function readJson(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    let size = 0;
+    req.on('data', chunk => {
+      size += chunk.length;
+      if (size > 1e6) {
+        reject(httpError(413, 'Body too large'));
+        req.destroy();
+      } else chunks.push(chunk);
+    });
+    req.on('end', () => {
+      try {
+        const body = chunks.length ? JSON.parse(Buffer.concat(chunks).toString('utf8')) : {};
+        if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error();
+        resolve(body);
+      } catch {
+        reject(httpError(400, 'Expected a JSON object'));
+      }
+    });
+    req.on('error', reject);
+  });
+}
+
+async function route(req, table, id, extra) {
+  if (!table) return [200, Object.keys(TABLES)];
+  if (!Object.hasOwn(TABLES, table) || extra !== undefined) return [404, { error: 'Not found' }];
+  const hook = hooks[table] || {};
+
+  if (id === undefined) {
+    if (req.method === 'GET') return [200, await store.list(table)];
+    if (req.method === 'POST') {
+      const body = await readJson(req);
+      const ownId = typeof body.id === 'string' && /^[\w-]{1,64}$/.test(body.id) ? body.id : crypto.randomUUID();
+      let row = { id: ownId, ...clean(table, body) };
+      if (hook.beforeCreate) row = await hook.beforeCreate(row, req);
+      if (await store.get(table, row.id)) throw httpError(409, 'That id is taken');
+      return [201, await store.insert(table, row)];
+    }
+    return [405, { error: 'Method not allowed' }];
+  }
+
+  const existing = await store.get(table, id);
+  if (!existing) return [404, { error: 'Not found' }];
+  if (req.method === 'GET') return [200, existing];
+  if (req.method === 'PATCH' || req.method === 'PUT') {
+    let patch = clean(table, await readJson(req), req.method === 'PATCH');
+    if (hook.beforeUpdate) patch = await hook.beforeUpdate(existing, patch, req);
+    return [200, await store.update(table, id, patch)];
+  }
+  if (req.method === 'DELETE') {
+    if (hook.beforeDelete) await hook.beforeDelete(existing, req);
+    await store.remove(table, id);
+    return [204];
+  }
+  return [405, { error: 'Method not allowed' }];
+}
+
+// Answers requests under `base` and returns true, or returns false for other paths.
+async function handleApi(req, res, base = '/api') {
+  const { pathname } = new URL(req.url, 'http://localhost');
+  if (pathname !== base && !pathname.startsWith(base + '/')) return false;
+  let status, body;
+  try {
+    const [table, id, extra] = pathname.slice(base.length + 1).split('/').map(decodeURIComponent);
+    [status, body] = await route(req, table || undefined, id, extra);
+  } catch (error) {
+    if (!error.status) console.error(error);
+    [status, body] = [error.status || 500, { error: error.status ? error.message : 'Server error' }];
+  }
+  res.writeHead(status, status === 204 ? {} : { 'Content-Type': 'application/json; charset=utf-8' });
+  res.end(status === 204 ? undefined : JSON.stringify(body));
+  return true;
+}
+
+module.exports = { handleApi };
+</script>
+
+<script type="text/plain" id="t-store-json">
+// Storage: one JSON file (server/data/db.json). Good for prototypes and small
+// apps. Pick SQLite or PostgreSQL in the engine's Export dialog when it grows;
+// the API code doesn't change, only this file.
+
+const fs = require('node:fs');
+const path = require('node:path');
+const { TABLES, SEED } = require('./schema');
+
+const FILE = process.env.DB_FILE || path.join(__dirname, '..', 'data', 'db.json');
+
+let db;
+try {
+  db = JSON.parse(fs.readFileSync(FILE, 'utf8'));
+} catch {
+  db = structuredClone(SEED);
+}
+for (const table in TABLES) db[table] ||= [];
+
+function persist() {
+  fs.mkdirSync(path.dirname(FILE), { recursive: true });
+  fs.writeFileSync(FILE + '.tmp', JSON.stringify(db, null, 2));
+  fs.renameSync(FILE + '.tmp', FILE);
+}
+
+module.exports = {
+  async list(table) {
+    return db[table];
+  },
+  async get(table, id) {
+    return db[table].find(row => row.id === id);
+  },
+  async insert(table, row) {
+    db[table].push(row);
+    persist();
+    return row;
+  },
+  async update(table, id, patch) {
+    const row = db[table].find(r => r.id === id);
+    Object.assign(row, patch);
+    persist();
+    return row;
+  },
+  async remove(table, id) {
+    db[table] = db[table].filter(row => row.id !== id);
+    persist();
+  },
+};
+</script>
+
+<script type="text/plain" id="t-store-sqlite">
+// Storage: SQLite, through Node's built-in node:sqlite module (Node 22.13 or
+// later; 22.5 to 22.12 need --experimental-sqlite). Nothing to install. The
+// database is server/data/app.db, made from db/schema.sql on first run.
+
+const fs = require('node:fs');
+const path = require('node:path');
+const { DatabaseSync } = require('node:sqlite');
+const { TABLES, SEED } = require('./schema');
+
+const FILE = process.env.DB_FILE || path.join(__dirname, '..', 'data', 'app.db');
+fs.mkdirSync(path.dirname(FILE), { recursive: true });
+const fresh = !fs.existsSync(FILE);
+const db = new DatabaseSync(FILE);
+db.exec(fs.readFileSync(path.join(__dirname, '..', 'db', 'schema.sql'), 'utf8'));
+
+// SQLite has no boolean type: they are stored as 0 and 1.
+function encode(row) {
+  const out = {};
+  for (const [key, value] of Object.entries(row)) out[key] = typeof value === 'boolean' ? Number(value) : value;
+  return out;
+}
+function decode(table, row) {
+  if (!row) return row;
+  const out = { ...row };
+  for (const [field, type] of Object.entries(TABLES[table])) if (type === 'boolean') out[field] = !!out[field];
+  return out;
+}
+const quote = name => '"' + name + '"';
+
+const store = {
+  async list(table) {
+    return db.prepare(`SELECT * FROM ${quote(table)} ORDER BY created_at, rowid`).all().map(row => decode(table, row));
+  },
+  async get(table, id) {
+    return decode(table, db.prepare(`SELECT * FROM ${quote(table)} WHERE id = ?`).get(id));
+  },
+  async insert(table, row) {
+    const data = encode(row), keys = Object.keys(data);
+    db.prepare(`INSERT INTO ${quote(table)} (${keys.map(quote).join(', ')}) VALUES (${keys.map(() => '?').join(', ')})`)
+      .run(...keys.map(key => data[key]));
+    return store.get(table, row.id);
+  },
+  async update(table, id, patch) {
+    const data = encode(patch), keys = Object.keys(data);
+    if (keys.length) {
+      db.prepare(`UPDATE ${quote(table)} SET ${keys.map(key => quote(key) + ' = ?').join(', ')} WHERE id = ?`)
+        .run(...keys.map(key => data[key]), id);
+    }
+    return store.get(table, id);
+  },
+  async remove(table, id) {
+    db.prepare(`DELETE FROM ${quote(table)} WHERE id = ?`).run(id);
+  },
+};
+
+if (fresh) for (const [table, rows] of Object.entries(SEED)) for (const row of rows) store.insert(table, row);
+
+module.exports = store;
+</script>
+
+<script type="text/plain" id="t-store-pg">
+// Storage: PostgreSQL, through the pg package (run `npm install` in server/).
+// Connects to DATABASE_URL. docker-compose.yml starts a database and loads
+// db/schema.sql and db/seed.sql into it the first time.
+
+const { Pool } = require('pg');
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL || 'postgres://app:app@localhost:5432/app' });
+const quote = name => '"' + name + '"';
+
+const store = {
+  async list(table) {
+    return (await pool.query(`SELECT * FROM ${quote(table)} ORDER BY created_at`)).rows;
+  },
+  async get(table, id) {
+    return (await pool.query(`SELECT * FROM ${quote(table)} WHERE id = $1`, [id])).rows[0];
+  },
+  async insert(table, row) {
+    const keys = Object.keys(row);
+    const sql = `INSERT INTO ${quote(table)} (${keys.map(quote).join(', ')}) VALUES (${keys.map((_, i) => '$' + (i + 1)).join(', ')}) RETURNING *`;
+    return (await pool.query(sql, keys.map(key => row[key]))).rows[0];
+  },
+  async update(table, id, patch) {
+    const keys = Object.keys(patch);
+    if (!keys.length) return store.get(table, id);
+    const sql = `UPDATE ${quote(table)} SET ${keys.map((key, i) => quote(key) + ' = $' + (i + 1)).join(', ')} WHERE id = $${keys.length + 1} RETURNING *`;
+    return (await pool.query(sql, [...keys.map(key => patch[key]), id])).rows[0];
+  },
+  async remove(table, id) {
+    await pool.query(`DELETE FROM ${quote(table)} WHERE id = $1`, [id]);
+  },
+};
+
+module.exports = store;
+</script>
+
+<script type="text/plain" id="t-web">
+// Web server: serves the app and nothing else. No packages needed.
+//   node server/web.js        then open http://localhost:8080/
+// Set PORT to use another port.
+
+const http = require('node:http');
+const { serveStatic } = require('./lib/static');
+
+const PORT = Number(process.env.PORT) || 8080;
+
+http.createServer(serveStatic).listen(PORT, () => {
+  console.log(`@@NAME@@ is at http://localhost:${PORT}/`);
+});
+</script>
+
+<script type="text/plain" id="t-apiserver">
+// API server: the REST API on its own, for when the app is hosted elsewhere
+// (GitHub Pages, say). It allows calls from CORS_ORIGIN (default: anywhere).
+//   node server/api.js        then the API is at http://localhost:3000/api
+// In the engine, set App › API address to this server's /api address.
+
+const http = require('node:http');
+const { handleApi } = require('./lib/api');
+
+const PORT = Number(process.env.PORT) || 3000;
+const ORIGIN = process.env.CORS_ORIGIN || '*';
+
+http.createServer(async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', ORIGIN);
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204);
+    return res.end();
+  }
+  if (!(await handleApi(req, res))) {
+    res.writeHead(404, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Not found' }));
+  }
+}).listen(PORT, () => {
+  console.log(`API for @@NAME@@ is at http://localhost:${PORT}/api`);
+});
+</script>
+
+<script type="text/plain" id="t-app">
+// Application server: the app and its API from one address, with the
+// server-side logic in lib/hooks.js. This is the one to deploy.
+//   node server/app.js        then open http://localhost:8080/
+
+const http = require('node:http');
+const { serveStatic } = require('./lib/static');
+const { handleApi } = require('./lib/api');
+
+const PORT = Number(process.env.PORT) || 8080;
+
+http.createServer(async (req, res) => {
+  if (await handleApi(req, res)) return;
+  serveStatic(req, res);
+}).listen(PORT, () => {
+  console.log(`@@NAME@@ is at http://localhost:${PORT}/ (API at /api)`);
+});
+</script>
+
+<script type="text/plain" id="t-py">
+# Web server in Python, standard library only:
+#   python3 server/web.py      then open http://localhost:8080/
+# Serves the app's top-level files; everything else gets index.html.
+
+import http.server
+import os
+import posixpath
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PORT = int(os.environ.get("PORT", "8080"))
+
+
+class Handler(http.server.SimpleHTTPRequestHandler):
+    extensions_map = {
+        **http.server.SimpleHTTPRequestHandler.extensions_map,
+        ".js": "text/javascript",
+        ".json": "application/json",
+        ".webmanifest": "application/manifest+json",
+        ".svg": "image/svg+xml",
+    }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory=ROOT, **kwargs)
+
+    def translate_path(self, path):
+        name = posixpath.normpath(path.split("?", 1)[0].split("#", 1)[0]).lstrip("/")
+        if not name or "/" in name or name.startswith(".") or name == "index.html":
+            name = "index.html"
+        elif not os.path.isfile(os.path.join(ROOT, name)):
+            name = "index.html"
+        return os.path.join(ROOT, name)
+
+    def end_headers(self):
+        if self.path.split("?")[0] in ("/", "/index.html", "/sw.js"):
+            self.send_header("Cache-Control", "no-cache")
+        super().end_headers()
+
+
+if __name__ == "__main__":
+    print(f"@@NAME@@ is at http://localhost:{PORT}/")
+    http.server.ThreadingHTTPServer(("", PORT), Handler).serve_forever()
+</script>
+
+<script type="text/plain" id="t-nginx">
+# nginx site for @@NAME@@. Copy the app's top-level files to /srv/@@SLUG@@
+# (index.html, sw.js, manifest.json, icons) and include this in nginx.conf.
+
+server {
+    listen 80;
+    server_name _;
+    root /srv/@@SLUG@@;
+    index index.html;
+
+    types { application/manifest+json webmanifest; }
+
+    location / {
+        try_files $uri /index.html;
+    }
+
+    location = /sw.js {
+        add_header Cache-Control "no-cache";
+    }
+
+    location = /index.html {
+        add_header Cache-Control "no-cache";
+    }
+
+    location ~ ^/(server|cli)/ {
+        return 404;
+    }
+@@API@@}
+</script>
+<script>
+'use strict';
+
+// =============================================================================
+// Basics
+// =============================================================================
+
+const $ = id => document.getElementById(id);
+const clone = value => JSON.parse(JSON.stringify(value));
+
+function el(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const [key, value] of Object.entries(attrs || {})) {
+    if (value == null || value === false || key === 'value') continue;
+    if (key.startsWith('on')) e.addEventListener(key.slice(2), value);
+    else if (key === 'checked') e.checked = !!value;
+    else e.setAttribute(key, value === true ? '' : value);
+  }
+  for (const kid of kids.flat(Infinity)) if (kid != null && kid !== false) e.append(kid instanceof Node ? kid : String(kid));
+  if (attrs && attrs.value != null) e.value = attrs.value;
+  return e;
+}
+
+function toast(message) {
+  const note = el('div', { class: 'toast', role: 'status' }, message);
+  document.body.append(note);
+  setTimeout(() => note.remove(), 2600);
+}
+
+const escHtml = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const slugify = s => String(s).toLowerCase().normalize('NFKD').replace(/[^\w]+/g, '-').replace(/^-+|-+$/g, '') || 'app';
+const titleCase = s => String(s).replace(/[_-]+/g, ' ').replace(/^\w/, c => c.toUpperCase());
+
+// Names a project can't use for its state or data, because the generated code
+// already uses them (or JavaScript does).
+const RESERVED = new Set(('S h html render morph view route go nav toast fail load save add update remove clear ' +
+  'fetchRows uid withIds by fmt bar strip pick choose item index event rows out opts main IO current SOURCES PAGES ' +
+  'SCREENS TITLES API FILE DATA_FILE fs root queued EVENTS value error data form ' +
+  'break case catch class const continue debugger default delete do else export extends false finally for function ' +
+  'if import in instanceof new null return super switch this throw true try typeof var void while with yield let ' +
+  'static await async of undefined NaN Infinity window document location console Math JSON Date Number String ' +
+  'Boolean Array Object Promise Error Map Set fetch localStorage navigator self parent require module process').split(' '));
+const IDENT = /^[A-Za-z_$][\w$]*$/;
+
+// =============================================================================
+// Components
+// =============================================================================
+// Each component type: g group, l label, i icon, box (holds children),
+// d default props, f fields shown in the inspector, ev events it can act on.
+// Field types: tpl (text that may hold {{ expressions }}), tplarea, text, area,
+// code, num, sel, check, expr (a JavaScript expression), bind (state or item
+// field it edits), source, page, fields (comma list of a source's fields).
+
+const TYPES = {
+  stack: { g: 'Layout', l: 'Stack', i: '☰', box: true, d: {}, f: [], tip: 'Puts its children one under another.' },
+  row: { g: 'Layout', l: 'Row', i: '⇹', box: true, d: { justify: 'start', align: 'center', wrap: true }, tip: 'Puts its children side by side.', f: [
+    { k: 'justify', t: 'sel', l: 'Spread', o: [['start', 'From the start'], ['center', 'Centered'], ['end', 'At the end'], ['between', 'Spaced out']] },
+    { k: 'align', t: 'sel', l: 'Line up', o: [['start', 'Tops'], ['center', 'Middles'], ['end', 'Bottoms'], ['stretch', 'Stretch']] },
+    { k: 'wrap', t: 'check', l: 'Wrap onto more lines when narrow' }] },
+  card: { g: 'Layout', l: 'Card', i: '▢', box: true, d: {}, f: [], tip: 'A framed group.' },
+  heading: { g: 'Content', l: 'Heading', i: 'H', d: { text: 'Heading', level: 2 }, f: [
+    { k: 'text', t: 'tpl', l: 'Text' },
+    { k: 'level', t: 'sel', l: 'Size', o: [[1, 'Largest (H1)'], [2, 'Large (H2)'], [3, 'Medium (H3)'], [4, 'Small (H4)']] }] },
+  text: { g: 'Content', l: 'Text', i: '¶', d: { text: 'Some text.', muted: false }, f: [
+    { k: 'text', t: 'tplarea', l: 'Text' }, { k: 'muted', t: 'check', l: 'Quieter color' }] },
+  image: { g: 'Content', l: 'Image', i: '◩', d: { src: '', alt: '' }, f: [
+    { k: 'src', t: 'tpl', l: 'Image address', ph: 'https://… or data:…' }, { k: 'alt', t: 'tpl', l: 'Description (read aloud by screen readers)' }] },
+  link: { g: 'Content', l: 'Link', i: '↗', d: { text: 'Link', page: '', href: '' }, f: [
+    { k: 'text', t: 'tpl', l: 'Text' }, { k: 'page', t: 'page', l: 'Goes to page' }, { k: 'href', t: 'text', l: '…or to a web address', ph: 'https://' }] },
+  progress: { g: 'Content', l: 'Progress', i: '▰', d: { value: '50', max: '100' }, f: [
+    { k: 'value', t: 'expr', l: 'Value' }, { k: 'max', t: 'expr', l: 'Out of' }] },
+  divider: { g: 'Content', l: 'Divider', i: '—', d: {}, f: [] },
+  spacer: { g: 'Content', l: 'Spacer', i: '↕', d: { size: 24 }, f: [{ k: 'size', t: 'num', l: 'Height (px)' }] },
+  html: { g: 'Content', l: 'HTML', i: '</>', d: { html: '<p><em>Your</em> HTML here.</p>' }, tip: 'For developers: any HTML, with {{ }} expressions.', f: [
+    { k: 'html', t: 'code', l: 'HTML' }] },
+  button: { g: 'Input', l: 'Button', i: '⏺', d: { label: 'Button', variant: 'primary' }, ev: [['click', 'When clicked']], f: [
+    { k: 'label', t: 'tpl', l: 'Label' },
+    { k: 'variant', t: 'sel', l: 'Style', o: [['primary', 'Filled'], ['secondary', 'Outlined'], ['ghost', 'Plain'], ['danger', 'Danger']] }] },
+  input: { g: 'Input', l: 'Text box', i: '⌨', d: { label: 'Name', type: 'text', placeholder: '', bind: '' }, ev: [['enter', 'When Enter is pressed'], ['change', 'When changed']], f: [
+    { k: 'label', t: 'tpl', l: 'Label' },
+    { k: 'type', t: 'sel', l: 'Kind', o: [['text', 'Text'], ['number', 'Number'], ['email', 'Email'], ['password', 'Password'], ['date', 'Date'], ['search', 'Search'], ['url', 'Web address']] },
+    { k: 'placeholder', t: 'text', l: 'Placeholder' }, { k: 'bind', t: 'bind', l: 'Keeps its value in' }] },
+  textarea: { g: 'Input', l: 'Long text', i: '▤', d: { label: 'Notes', placeholder: '', bind: '' }, ev: [['change', 'When changed']], f: [
+    { k: 'label', t: 'tpl', l: 'Label' }, { k: 'placeholder', t: 'text', l: 'Placeholder' }, { k: 'bind', t: 'bind', l: 'Keeps its value in' }] },
+  checkbox: { g: 'Input', l: 'Checkbox', i: '☑', d: { label: 'Done', bind: '' }, ev: [['change', 'When changed']], f: [
+    { k: 'label', t: 'tpl', l: 'Label' }, { k: 'bind', t: 'bind', l: 'Keeps its value in' }] },
+  select: { g: 'Input', l: 'Dropdown', i: '▾', d: { label: 'Size', options: 'Small\nMedium\nLarge', bind: '' }, ev: [['change', 'When changed']], f: [
+    { k: 'label', t: 'tpl', l: 'Label' }, { k: 'options', t: 'area', l: 'Options, one per line (value|label also works)' }, { k: 'bind', t: 'bind', l: 'Keeps its value in' }] },
+  slider: { g: 'Input', l: 'Slider', i: '⊸', d: { label: 'Amount', min: 0, max: 100, step: 1, bind: '' }, ev: [['change', 'When changed']], f: [
+    { k: 'label', t: 'tpl', l: 'Label' }, { k: 'min', t: 'num', l: 'Lowest' }, { k: 'max', t: 'num', l: 'Highest' }, { k: 'step', t: 'num', l: 'Step' },
+    { k: 'bind', t: 'bind', l: 'Keeps its value in' }] },
+  list: { g: 'Data', l: 'List', i: '≡', box: true, d: { source: '', filter: '', sort: '', layout: 'row', empty: 'Nothing here yet.' }, ev: [['itemclick', 'When an item is clicked']],
+    tip: 'What you put inside repeats for each item. Use {{item.field}} to show a field.', f: [
+    { k: 'source', t: 'source', l: 'Shows items from' }, { k: 'filter', t: 'expr', l: 'Only items where', ph: '!item.done' },
+    { k: 'sort', t: 'sort', l: 'Sort by field (start with - for reverse)', ph: '-created' },
+    { k: 'layout', t: 'sel', l: 'Each item is a', o: [['row', 'Row'], ['stack', 'Stack'], ['grid', 'Card in a grid']] },
+    { k: 'empty', t: 'tpl', l: 'When there are none, show' }] },
+  table: { g: 'Data', l: 'Table', i: '▦', d: { source: '', columns: '', filter: '', del: true }, f: [
+    { k: 'source', t: 'source', l: 'Shows items from' }, { k: 'columns', t: 'fields', l: 'Columns (blank shows every field)', ph: 'title, done' },
+    { k: 'filter', t: 'expr', l: 'Only items where', ph: '!item.done' }, { k: 'del', t: 'check', l: 'Delete button on each row' }] },
+  form: { g: 'Data', l: 'Form', i: '✎', d: { source: '', fields: '', submit: 'Add' }, ev: [['submit', 'After it saves']], tip: 'Adds an item to a data source.', f: [
+    { k: 'source', t: 'source', l: 'Adds items to' }, { k: 'fields', t: 'fields', l: 'Fields (blank asks for every field)' }, { k: 'submit', t: 'tpl', l: 'Button label' }] },
+};
+
+const STEPS = {
+  set: { l: 'Set state', f: [['target', 'state', 'State'], ['expr', 'expr', 'To']] },
+  toggle: { l: 'Flip true/false state', f: [['target', 'state', 'State']] },
+  add: { l: 'Add an item', f: [['source', 'source', 'To'], ['values', 'values', 'With']] },
+  update: { l: 'Change this item', item: true, f: [['values', 'values', 'Set']] },
+  remove: { l: 'Delete this item', item: true, f: [] },
+  clear: { l: 'Delete all items', f: [['source', 'source', 'From']] },
+  reload: { l: 'Reload data', f: [['source', 'source', 'Source']] },
+  go: { l: 'Go to page', f: [['page', 'page', 'Page']] },
+  toast: { l: 'Show a message', f: [['text', 'tpl', 'Message']] },
+  guard: { l: 'Continue only if', f: [['expr', 'expr', 'Condition']] },
+  js: { l: 'Run code', f: [['code', 'code', 'JavaScript (S holds the state)']] },
+};
+
+const FIELD_TYPES = [['text', 'Text'], ['longtext', 'Long text'], ['number', 'Number'], ['boolean', 'Yes/no'], ['date', 'Date'], ['email', 'Email'], ['url', 'Web address']];
+const STATE_TYPES = [['text', 'Text'], ['number', 'Number'], ['boolean', 'Yes/no'], ['json', 'JSON']];
+const SOURCE_KINDS = [
+  ['local', 'This device', 'Saved in the browser (localStorage). Works offline.'],
+  ['memory', 'Memory', 'Starts from the sample rows each time the app opens.'],
+  ['api', 'Server API', 'Stored by the generated API server and database. The preview uses the sample rows.'],
+  ['rest', 'Web address', 'Loaded from any JSON address (REST API).'],
+];
+const EMPTY_VALUE = { text: "''", longtext: "''", email: "''", url: "''", date: "''", number: '0', boolean: 'false' };
+
+// =============================================================================
+// Code generation
+// =============================================================================
+// makeGen(project, mode) writes code for one target:
+//   'web'    the exported app (index.html)
+//   'design' the same app for the preview, with selection support
+//   'node'   the terminal app for Node (cli/app.js)
+//   'term'   the terminal app run in the engine's Terminal tab
+// The web and terminal apps share state, data and action code; only the views differ.
+
+// A JavaScript string literal in single quotes.
+const q = s => "'" + JSON.stringify(String(s ?? '')).slice(1, -1).replace(/\\"/g, '"').replace(/'/g, "\\'") + "'";
+const ind = (s, n) => s.replace(/^(?=.)/gm, ' '.repeat(n));
+const tplEsc = s => s.replace(/[`\\]/g, '\\$&').replace(/\$\{/g, '\\${');
+const propKey = k => (IDENT.test(k) ? k : q(k));
+
+// "Hello {{name}}" -> `Hello ${name ?? ''}`
+function tpl(s) {
+  s = String(s ?? '');
+  if (!s.includes('{{')) return q(s);
+  let out = '`', last = 0;
+  s.replace(/\{\{([\s\S]+?)\}\}/g, (m, expr, i) => {
+    out += tplEsc(s.slice(last, i)) + '${' + expr.trim() + ' ?? \'\'}';
+    last = i + m.length;
+  });
+  return out + tplEsc(s.slice(last)) + '`';
+}
+
+function px(v) {
+  return /^-?\d+(\.\d+)?$/.test(String(v).trim()) ? v + 'px' : v;
+}
+
+const STYLE_PROPS = [
+  ['padding', 'padding', 'Padding', true], ['margin', 'margin', 'Margin', true], ['gap', 'gap', 'Gap between children', true],
+  ['bg', 'background', 'Background', false, 'color'], ['color', 'color', 'Text color', false, 'color'],
+  ['align', 'text-align', 'Text align', false, 'sel', [['', 'Default'], ['left', 'Left'], ['center', 'Center'], ['right', 'Right']]],
+  ['size', 'font-size', 'Text size', true], ['weight', 'font-weight', 'Weight', false, 'sel', [['', 'Default'], ['400', 'Normal'], ['600', 'Semibold'], ['700', 'Bold']]],
+  ['radius', 'border-radius', 'Corner radius', true], ['width', 'max-width', 'Max width', true], ['border', 'border', 'Border', false],
+];
+
+function contrastText(hex) {
+  const m = /^#?([\da-f]{6})$/i.exec(hex || '');
+  if (!m) return '#fff';
+  const n = parseInt(m[1], 16), lum = (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+  return lum > 0.62 ? '#111' : '#fff';
+}
+
+function apiSources(P) {
+  return P.sources.filter(s => s.kind === 'api');
+}
+
+function makeGen(P, mode, opts = {}) {
+  const web = mode === 'web' || mode === 'design', design = mode === 'design';
+  const names = [...P.state.map(v => v.name), ...P.sources.map(s => s.name)];
+  const nameRes = names.map(n => [n, new RegExp('(?<![\\w$.])' + n.replace(/\$/g, '\\$') + '(?![\\w$])')]);
+  const srcOf = name => P.sources.find(s => s.name === name);
+  const pageById = id => P.pages.find(p => p.id === id);
+  const multi = P.pages.length > 1;
+  const used = new Set(), helpers = new Set(), actions = [], views = [];
+  const slug = slugify(P.app.name);
+
+  // `const { a, b } = S;` for the state names a piece of code reads.
+  const destr = code => {
+    const bare = code.replace(/"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'/g, "''");
+    const u = nameRes.filter(([, re]) => re.test(bare)).map(([n]) => n);
+    return u.length ? `const { ${u.join(', ')} } = S;\n` : '';
+  };
+  const block = code => {
+    const d = destr(code);
+    return d ? `{\n${ind(d + code, 2)}\n}` : code;
+  };
+  const pageFn = page => 'page_' + page.path.replace(/\W/g, '_');
+  const fieldType = (srcName, field) => {
+    const f = srcOf(srcName)?.fields.find(x => x.name === field);
+    return f ? f.type : 'text';
+  };
+  const fieldList = (src, list) => {
+    const want = String(list || '').split(',').map(s => s.trim()).filter(Boolean);
+    return want.length ? want.map(n => src.fields.find(f => f.name === n)).filter(Boolean) : src.fields;
+  };
+  const coerce = (v, type) => (type === 'number' ? `Number(${v})` : type === 'boolean' ? `Boolean(${v})` : v);
+
+  // ------------------------------------------------------------------ actions
+
+  function valuesObj(srcName, values, isAdd) {
+    const src = srcOf(srcName);
+    if (!src) return '{}';
+    const parts = [];
+    for (const f of src.fields) {
+      const e = values?.[f.name]?.trim();
+      if (e) parts.push(`${propKey(f.name)}: ${e}`);
+      else if (isAdd) parts.push(`${propKey(f.name)}: ${EMPTY_VALUE[f.type] || "''"}`);
+    }
+    return parts.length ? `{ ${parts.join(', ')} }` : '{}';
+  }
+
+  function stepCode(s, ctx) {
+    switch (s.kind) {
+      case 'set': return s.target ? block(`S.${s.target} = ${s.expr?.trim() || 'null'};`) : '';
+      case 'toggle': return s.target ? `S.${s.target} = !S.${s.target};` : '';
+      case 'add': return srcOf(s.source) ? block(`await add(${q(s.source)}, ${valuesObj(s.source, s.values, true)});`) : '';
+      case 'update': return ctx.src ? block(`await update(${q(ctx.src)}, item, ${valuesObj(ctx.src, s.values)});`) : '';
+      case 'remove': return ctx.src ? `await remove(${q(ctx.src)}, item);` : '';
+      case 'clear': return srcOf(s.source) ? `await clear(${q(s.source)});` : '';
+      case 'reload': return srcOf(s.source) ? `await load(${q(s.source)});` : '';
+      case 'go': { const page = pageById(s.page); return page && multi ? `go(${q(page.path)});` : ''; }
+      case 'toast': return block(`toast(${tpl(s.text)});`);
+      case 'guard': return s.expr?.trim() ? block(`if (!(${s.expr.trim()})) return;`) : '';
+      case 'js': return s.code?.trim() ? s.code.trim() : '';
+    }
+    return '';
+  }
+
+  // Writes `async function on_n5_click(event, item, index) {…}` and returns its name.
+  function act(n, ev, ctx) {
+    const steps = n.on?.[ev];
+    if (!steps?.length) return null;
+    const name = `on_${n.id}_${ev}`;
+    const body = steps.map(s => stepCode(s, ctx)).filter(Boolean).join('\n');
+    const label = `${TYPES[n.type].l}${n.name ? ' "' + n.name + '"' : ''}: ${(TYPES[n.type].ev.find(e => e[0] === ev) || [, ev])[1].toLowerCase()}`;
+    actions.push(`// ${label.replace(/\n/g, ' ')}\nasync function ${name}(event${ctx.src ? ', item, index' : ''}) {\n  try {\n${ind(body || '// (no steps yet)', 4)}\n  } catch (error) {\n    fail(error);\n  } finally {\n    render();\n  }\n}`);
+    return name;
+  }
+  const callArgs = ctx => (ctx.src ? 'event, item, index' : 'event');
+
+  // A bound control: where its value comes from and how to write it back.
+  function bindOf(n, ctx) {
+    const b = n.props.bind;
+    if (!b) return null;
+    if (b.startsWith('item.')) {
+      if (!ctx.src) return null;
+      const f = b.slice(5);
+      return { get: `item[${q(f)}]`, set: v => `update(${q(ctx.src)}, item, { ${propKey(f)}: ${v} })`, type: fieldType(ctx.src, f), item: true };
+    }
+    const v = P.state.find(x => x.name === b);
+    return v ? { get: `S.${b}`, set: val => `S.${b} = ${val}`, type: v.type } : null;
+  }
+
+  // ------------------------------------------------------------------ web views
+
+  function hc(tag, attrs, kids = []) {
+    const a = attrs.filter(([, v]) => v != null && v !== '');
+    const obj = a.length ? `{ ${a.map(([k, v]) => `${propKey(k)}: ${v}`).join(', ')} }` : '{}';
+    const head = `h(${q(tag)}, ${obj}`;
+    kids = kids.filter(Boolean);
+    if (!kids.length) return head + ')';
+    if (kids.length === 1 && !kids[0].includes('\n') && head.length + kids[0].length < 100) return `${head}, ${kids[0]})`;
+    return `${head},\n${kids.map(k => ind(k, 2)).join(',\n')}\n)`;
+  }
+
+  function styleOf(n) {
+    const s = n.style || {}, p = n.props, out = [];
+    if (n.type === 'row') {
+      if (p.justify && p.justify !== 'start') out.push(`justify-content: ${p.justify === 'between' ? 'space-between' : p.justify === 'end' ? 'flex-end' : p.justify}`);
+      if (p.align && p.align !== 'center') out.push(`align-items: ${p.align === 'start' ? 'flex-start' : p.align === 'end' ? 'flex-end' : p.align}`);
+      if (!p.wrap) out.push('flex-wrap: nowrap');
+    }
+    if (n.type === 'spacer') out.push(`height: ${px(p.size || 0)}`);
+    for (const [k, prop, , isLen] of STYLE_PROPS) if (s[k] != null && String(s[k]).trim()) out.push(`${prop}: ${isLen ? px(String(s[k]).trim()) : String(s[k]).trim()}`);
+    if (s.css?.trim()) out.push(s.css.trim().replace(/;\s*$/, ''));
+    return out.join('; ');
+  }
+
+  function webNode(n, ctx) {
+    used.add(n.type);
+    const p = n.props, T = TYPES[n.type];
+    const base = (cls, extra = []) => {
+      const a = [];
+      const c = [cls, p.cls].filter(Boolean).join(' ');
+      if (c) a.push(['class', q(c)]);
+      const st = styleOf(n);
+      if (st) a.push(['style', q(st)]);
+      if (design) a.push(['data-n', q(n.id)]);
+      return a.concat(extra);
+    };
+    const kids = (c = ctx) => (n.children || []).map(child => webNode(child, c));
+    let code;
+    switch (n.type) {
+      case 'stack': code = hc('div', base('stack'), kids()); break;
+      case 'row': code = hc('div', base('row'), kids()); break;
+      case 'card': code = hc('section', base('card'), kids()); break;
+      case 'heading': code = hc('h' + (Number(p.level) || 2), base(''), [tpl(p.text)]); break;
+      case 'text': code = hc('p', base('text' + (p.muted ? ' muted' : '')), [tpl(p.text)]); break;
+      case 'image': code = hc('img', base('', [['src', tpl(p.src)], ['alt', tpl(p.alt)], ['loading', "'lazy'"]])); break;
+      case 'link': {
+        const page = pageById(p.page);
+        const href = page ? [['href', q('#/' + page.path)]] : [['href', q(p.href || '#')], ['target', "'_blank'"], ['rel', "'noopener'"]];
+        code = hc('a', base('', href), [tpl(p.text)]);
+        break;
+      }
+      case 'progress': code = hc('progress', base('', [['value', String(p.value || 0)], ['max', String(p.max || 100)]])); break;
+      case 'divider': code = hc('hr', base('')); break;
+      case 'spacer': code = hc('div', base('spacer')); break;
+      case 'html': helpers.add('html'); code = hc('div', base('html'), [`html(${tpl(p.html)})`]); break;
+      case 'button': {
+        const click = act(n, 'click', ctx);
+        code = hc('button', base('btn ' + (p.variant || 'primary'), [['type', "'button'"], ['onclick', click && `event => ${click}(${callArgs(ctx)})`]]), [tpl(p.label)]);
+        break;
+      }
+      case 'input': case 'textarea': case 'slider': {
+        const b = bindOf(n, ctx), enter = act(n, 'enter', ctx), change = act(n, 'change', ctx);
+        const isNum = n.type === 'slider' || p.type === 'number';
+        const val = b && coerce('event.target.value', isNum || b.type === 'number' ? 'number' : 'text');
+        const ctl = [];
+        if (n.type === 'input') ctl.push(['type', q(p.type || 'text')]);
+        if (n.type === 'textarea') ctl.push(['rows', '4']);
+        if (n.type === 'slider') ctl.push(['type', "'range'"], ['min', String(Number(p.min) || 0)], ['max', String(Number(p.max) || 100)], ['step', String(Number(p.step) || 1)]);
+        if (p.placeholder) ctl.push(['placeholder', q(p.placeholder)]);
+        if (!p.label) ctl.push(['aria-label', q(p.placeholder || T.l)]);
+        if (b) ctl.push(['value', `${b.get} ?? ''`]);
+        // Item fields save when the value is settled (change); state updates as you type.
+        if (b && !b.item) ctl.push(['oninput', `event => { ${b.set(val)}; render(); }`]);
+        const onchange = [b && b.item && `${b.set(val)}.catch(fail)`, change && `${change}(${callArgs(ctx)})`].filter(Boolean);
+        if (onchange.length) ctl.push(['onchange', `event => { ${onchange.join('; ')}; }`]);
+        if (enter) ctl.push(['onkeydown', `event => { if (event.key === 'Enter') ${enter}(${callArgs(ctx)}); }`]);
+        const tag = n.type === 'textarea' ? 'textarea' : 'input';
+        code = p.label ? hc('label', base('field'), [tpl(p.label), hc(tag, ctl)]) : hc(tag, base('', ctl));
+        break;
+      }
+      case 'checkbox': {
+        const b = bindOf(n, ctx), change = act(n, 'change', ctx);
+        const ctl = [['type', "'checkbox'"]];
+        if (b) ctl.push(['checked', b.get]);
+        const onchange = [b && (b.item ? `${b.set('event.target.checked')}.catch(fail)` : `${b.set('event.target.checked')}; render()`), change && `${change}(${callArgs(ctx)})`].filter(Boolean);
+        if (onchange.length) ctl.push(['onchange', `event => { ${onchange.join('; ')}; }`]);
+        if (!p.label) ctl.push(['aria-label', "'Done'"]);
+        code = hc('label', base('check'), [hc('input', ctl), p.label ? tpl(p.label) : null]);
+        break;
+      }
+      case 'select': {
+        const b = bindOf(n, ctx), change = act(n, 'change', ctx);
+        const ctl = [];
+        if (b) ctl.push(['value', `${b.get} ?? ''`]);
+        const val = b && coerce('event.target.value', b.type);
+        const onchange = [b && (b.item ? `${b.set(val)}.catch(fail)` : `${b.set(val)}; render()`), change && `${change}(${callArgs(ctx)})`].filter(Boolean);
+        if (onchange.length) ctl.push(['onchange', `event => { ${onchange.join('; ')}; }`]);
+        const options = optionList(p.options).map(([v, l]) => hc('option', [['value', q(v)]], [q(l)]));
+        const sel = hc('select', ctl, options);
+        code = p.label ? hc('label', base('field'), [tpl(p.label), sel]) : hc('select', base('', ctl), options);
+        break;
+      }
+      case 'list': {
+        const src = srcOf(p.source);
+        if (!src) { code = hc('p', base('muted'), [q('(List: pick a data source)')]); break; }
+        const inner = { src: src.name };
+        const click = act(n, 'itemclick', inner);
+        const layout = p.layout === 'stack' ? 'item stack' : p.layout === 'grid' ? 'item card' : 'item row';
+        const itemAttrs = [['class', q(layout)]];
+        if (click) itemAttrs.push(['onclick', `event => ${click}(event, item, index)`]);
+        const itemCode = hc('div', itemAttrs, kids(inner));
+        let rows = `S.${src.name}`;
+        if (p.filter?.trim()) rows += `.filter(item => ${p.filter.trim()})`;
+        if (p.sort?.trim()) { helpers.add('by'); rows += `.slice().sort(by(${q(p.sort.trim())}))`; }
+        const body = `const rows = ${rows};\nif (!rows.length) return ${hc('p', base('muted empty'), [tpl(p.empty)])};\nreturn ${hc('div', base('list' + (p.layout === 'grid' ? ' grid' : '')), [`rows.map((item, index) => ${itemCode})`])};`;
+        views.push(`function list_${n.id}() {\n${ind(destr(body) + body, 2)}\n}`);
+        code = `list_${n.id}()`;
+        break;
+      }
+      case 'table': {
+        const src = srcOf(p.source);
+        if (!src) { code = hc('p', base('muted'), [q('(Table: pick a data source)')]); break; }
+        helpers.add('fmt');
+        const cols = fieldList(src, p.columns);
+        const head = hc('tr', [], cols.map(f => hc('th', [], [q(titleCase(f.name))])).concat(p.del ? [hc('th', [], [])] : []));
+        const cells = cols.map(f => hc('td', [], [`fmt(item[${q(f.name)}])`]));
+        if (p.del) cells.push(hc('td', [], [hc('button', [['class', "'btn ghost'"], ['type', "'button'"], ['aria-label', "'Delete'"], ['onclick', `() => remove(${q(src.name)}, item).catch(fail)`]], ["'✕'"])]));
+        let rows = `S.${src.name}`;
+        if (p.filter?.trim()) rows += `.filter(item => ${p.filter.trim()})`;
+        const body = `const rows = ${rows};\nreturn ${hc('div', base('table-wrap'), [hc('table', [], [hc('thead', [], [head]), hc('tbody', [], [`rows.map((item, index) => ${hc('tr', [], cells)})`])])])};`;
+        views.push(`function table_${n.id}() {\n${ind(destr(body) + body, 2)}\n}`);
+        code = `table_${n.id}()`;
+        break;
+      }
+      case 'form': {
+        const src = srcOf(p.source);
+        if (!src) { code = hc('p', base('muted'), [q('(Form: pick a data source)')]); break; }
+        const fields = fieldList(src, p.fields);
+        const inputs = fields.map(f => {
+          const label = q(titleCase(f.name));
+          if (f.type === 'boolean') return hc('label', [['class', "'check'"]], [hc('input', [['type', "'checkbox'"], ['name', q(f.name)]]), label]);
+          if (f.type === 'longtext') return hc('label', [['class', "'field'"]], [label, hc('textarea', [['name', q(f.name)], ['rows', '3']])]);
+          const type = { number: 'number', date: 'date', email: 'email', url: 'url' }[f.type] || 'text';
+          return hc('label', [['class', "'field'"]], [label, hc('input', [['name', q(f.name)], ['type', q(type)], f.type === 'number' ? ['step', "'any'"] : ['required', f === fields[0] ? 'true' : null]])]);
+        });
+        const after = act(n, 'submit', ctx);
+        const values = fields.map(f => `${propKey(f.name)}: ${f.type === 'boolean' ? `data.has(${q(f.name)})` : f.type === 'number' ? `Number(data.get(${q(f.name)}))` : `data.get(${q(f.name)})`}`);
+        actions.push(`// Form: adds to ${src.name}\nasync function submit_${n.id}(event${ctx.src ? ', item, index' : ''}) {\n  event.preventDefault();\n  const form = event.target, data = new FormData(form);\n  try {\n    await add(${q(src.name)}, { ${values.join(', ')} });\n    form.reset();\n  } catch (error) {\n    return fail(error);\n  }\n${after ? `  await ${after}(${callArgs(ctx)});\n` : '  render();\n'}}`);
+        code = hc('form', base('form stack', [['onsubmit', `event => submit_${n.id}(${callArgs(ctx)})`]]), [...inputs, hc('button', [['class', "'btn primary'"]], [tpl(p.submit || 'Add')])]);
+        break;
+      }
+      default: code = 'null';
+    }
+    if (p.show?.trim()) code = `(${p.show.trim()}) ? ${code} : null`;
+    return code;
+  }
+
+  // ------------------------------------------------------------------ terminal views
+  // Statements that push lines to `out` and menu choices to `opts`.
+
+  function cliNode(n, ctx) {
+    const p = n.props;
+    const label = s => tpl(s);
+    let code = '';
+    switch (n.type) {
+      case 'stack': case 'row': case 'card':
+        code = (n.children || []).map(c => cliNode(c, ctx)).filter(Boolean).join('\n');
+        break;
+      case 'heading': code = ctx.src ? `out.push(${label(p.text)});` : `out.push(${q('#'.repeat(Number(p.level) || 2) + ' ')} + ${label(p.text)});`; break;
+      case 'text': code = `out.push(${label(p.text)});`; break;
+      case 'image': code = `out.push('[image' + (${label(p.alt)} ? ': ' + ${label(p.alt)} : '') + ']');`; break;
+      case 'link': {
+        const page = pageById(p.page);
+        code = page && multi ? `opts.push({ label: '→ ' + ${label(p.text)}, run: () => go(${q(page.path)}) });` : `out.push(${label(p.text)} + ' <' + ${q(p.href || '')} + '>');`;
+        break;
+      }
+      case 'progress': helpers.add('bar'); code = `out.push(bar(${p.value || 0}, ${p.max || 100}));`; break;
+      case 'divider': code = "out.push('─'.repeat(32));"; break;
+      case 'spacer': code = "out.push('');"; break;
+      case 'html': helpers.add('strip'); code = `out.push(strip(${label(p.html)}));`; break;
+      case 'button': {
+        const click = act(n, 'click', ctx);
+        code = `opts.push({ label: ${label(p.label)}, run: () => ${click ? `${click}(null${ctx.src ? ', item, index' : ''})` : '{}'} });`;
+        break;
+      }
+      case 'input': case 'textarea': case 'slider': {
+        const b = bindOf(n, ctx), enter = act(n, 'enter', ctx), change = act(n, 'change', ctx);
+        const isNum = n.type === 'slider' || p.type === 'number' || b?.type === 'number';
+        const name = p.label ? label(p.label) : q(p.placeholder || 'Type something');
+        const lines = ['const value = await IO.ask(' + name + " + ': ');"];
+        if (b) lines.push(`${b.item ? 'await ' : ''}${b.set(isNum ? 'Number(value)' : 'value')};`);
+        const ev = `{ target: { value } }${ctx.src ? ', item, index' : ''}`;
+        if (change) lines.push(`await ${change}(${ev});`);
+        if (enter) lines.push(`await ${enter}(${ev});`);
+        code = `opts.push({ label: '✎ ' + ${name}${b ? ` + ' (' + (${b.get} ?? '') + ')'` : ''}, run: async () => {\n${ind(lines.join('\n'), 2)}\n} });`;
+        break;
+      }
+      case 'checkbox': {
+        const b = bindOf(n, ctx), change = act(n, 'change', ctx);
+        const lines = [];
+        if (b) lines.push(`${b.item ? 'await ' : ''}${b.set('!' + b.get)};`);
+        if (change) lines.push(`await ${change}({ target: { checked: ${b ? b.get : 'true'} } }${ctx.src ? ', item, index' : ''});`);
+        code = `opts.push({ label: '[' + (${b ? b.get : 'false'} ? 'x' : ' ') + '] ' + ${label(p.label || 'Done')}, run: async () => {\n${ind(lines.join('\n') || '// nothing to do', 2)}\n} });`;
+        // Inside a list, the box also shows on the item's line.
+        if (ctx.src && b) code = `out.push(${b.get} ? '[x]' : '[ ]');\n` + code;
+        break;
+      }
+      case 'select': {
+        const b = bindOf(n, ctx), change = act(n, 'change', ctx);
+        helpers.add('choose');
+        const lines = [`const value = await choose(${JSON.stringify(optionList(p.options))});`, 'if (value === undefined) return;'];
+        if (b) lines.push(`${b.item ? 'await ' : ''}${b.set(coerce('value', b.type))};`);
+        if (change) lines.push(`await ${change}({ target: { value } }${ctx.src ? ', item, index' : ''});`);
+        code = `opts.push({ label: '▾ ' + ${label(p.label || 'Choose')}${b ? ` + ' (' + (${b.get} ?? '') + ')'` : ''}, run: async () => {\n${ind(lines.join('\n'), 2)}\n} });`;
+        break;
+      }
+      case 'list': {
+        const src = srcOf(p.source);
+        if (!src) break;
+        const inner = { src: src.name };
+        const click = act(n, 'itemclick', inner);
+        const itemBody = (n.children || []).map(c => cliNode(c, inner)).filter(Boolean).join('\n');
+        const fn = `item_${n.id}`;
+        const body = `const out = [], opts = [];\n${click ? `opts.push({ label: 'Open', run: () => ${click}(null, item, index) });\n` : ''}${itemBody}\nreturn { out, opts };`;
+        views.push(`function ${fn}(item, index) {\n${ind(destr(body) + body, 2)}\n}`);
+        let rows = `S.${src.name}`;
+        if (p.filter?.trim()) rows += `.filter(item => ${p.filter.trim()})`;
+        if (p.sort?.trim()) { helpers.add('by'); rows += `.slice().sort(by(${q(p.sort.trim())}))`; }
+        const interactive = click || /opts\.push/.test(itemBody);
+        if (interactive) helpers.add('pick');
+        code = `{\n  const rows = ${rows};\n  if (!rows.length) out.push('  ' + ${label(p.empty)});\n  rows.forEach((item, index) => out.push('  ' + (index + 1) + '. ' + ${fn}(item, index).out.join('  ')));\n` +
+          (interactive ? `  if (rows.length) opts.push({ label: 'Pick from ${src.name}…', run: () => pick(rows, ${fn}) });\n` : '') + '}';
+        break;
+      }
+      case 'table': {
+        const src = srcOf(p.source);
+        if (!src) break;
+        helpers.add('fmt');
+        const cols = fieldList(src, p.columns);
+        let rows = `S.${src.name}`;
+        if (p.filter?.trim()) rows += `.filter(item => ${p.filter.trim()})`;
+        code = `{\n  const rows = ${rows};\n  out.push(${q(cols.map(f => titleCase(f.name)).join(' | '))});\n  rows.forEach((item, index) => out.push((index + 1) + '. ' + [${cols.map(f => `fmt(item[${q(f.name)}])`).join(', ')}].join(' | ')));\n`;
+        if (p.del) code += `  if (rows.length) opts.push({ label: 'Delete a row from ${src.name}', run: async () => {\n    const row = rows[Number(await IO.ask('Row number: ')) - 1];\n    if (row) await remove(${q(src.name)}, row);\n  } });\n`;
+        code += '}';
+        break;
+      }
+      case 'form': {
+        const src = srcOf(p.source);
+        if (!src) break;
+        const after = act(n, 'submit', ctx);
+        const lines = fieldList(src, p.fields).map(f => {
+          const ask = `await IO.ask(${q(titleCase(f.name) + (f.type === 'boolean' ? ' (y/n): ' : ': '))})`;
+          return `values${IDENT.test(f.name) ? '.' + f.name : '[' + q(f.name) + ']'} = ${f.type === 'boolean' ? `/^y/i.test(${ask})` : f.type === 'number' ? `Number(${ask})` : ask};`;
+        });
+        code = `opts.push({ label: '+ ' + ${label(p.submit || 'Add')} + ' (${src.name})', run: async () => {\n  const values = {};\n${ind(lines.join('\n'), 2)}\n  await add(${q(src.name)}, values);\n${after ? `  await ${after}(null${ctx.src ? ', item, index' : ''});\n` : ''}} });`;
+        break;
+      }
+    }
+    if (code && p.show?.trim()) code = `if (${p.show.trim()}) {\n${ind(code, 2)}\n}`;
+    return code;
+  }
+
+  // ------------------------------------------------------------------ data
+
+  function genState() {
+    const lines = P.state.map(v => {
+      let init;
+      if (v.type === 'number') init = String(Number(v.initial) || 0);
+      else if (v.type === 'boolean') init = String(v.initial === true || v.initial === 'true');
+      else if (v.type === 'json') { try { init = JSON.stringify(JSON.parse(v.initial || 'null')); } catch { init = 'null'; } }
+      else init = q(v.initial ?? '');
+      return `  ${v.name}: ${init},`;
+    });
+    for (const s of P.sources) lines.push(`  ${s.name}: [],`);
+    return `// --- State: everything the app shows comes from S.\nconst S = {\n${lines.join('\n')}\n};`;
+  }
+
+  function seedRows(src) {
+    return (src.seed || []).map(row => {
+      const out = {};
+      for (const f of src.fields) {
+        const v = row[f.name];
+        out[f.name] = f.type === 'number' ? Number(v) || 0 : f.type === 'boolean' ? v === true || v === 'true' : v ?? '';
+      }
+      return out;
+    });
+  }
+
+  function kindOf(src) {
+    if (src.kind === 'api') return design || mode === 'term' ? 'memory' : 'api';
+    if (src.kind === 'local') return mode === 'node' ? 'file' : mode === 'term' ? 'memory' : 'local';
+    return src.kind;
+  }
+
+  function genData() {
+    if (!P.sources.length) return '';
+    const kinds = new Set(P.sources.map(kindOf));
+    const out = ['// --- Data'];
+    if (kinds.has('api')) out.push(mode === 'node' ? "const API = process.env.API_URL || 'http://localhost:8080/api';" : `const API = ${q((P.app.apiBase || './api').replace(/\/+$/, ''))};`);
+    if (kinds.has('file')) out.push(`const fs = require('node:fs');\nconst DATA_FILE = process.env.DATA_FILE || ${q(slug + '-data.json')};\nlet FILE = {};\ntry {\n  FILE = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));\n} catch {}`);
+    const entries = P.sources.map(s => {
+      const kind = kindOf(s), e = [`kind: ${q(kind)}`];
+      if (kind === 'local') e.push(`key: ${q((design ? 'mpe-preview:' : '') + slug + ':' + s.name)}`);
+      if (kind === 'file') e.push(`key: ${q(s.name)}`);
+      if (kind === 'api') e.push(`url: API + ${q('/' + s.name)}`);
+      if (kind === 'rest') {
+        e.push(`url: ${q(s.url || '')}`);
+        const path = String(s.path || '').split('.').map(x => x.trim()).filter(Boolean);
+        if (path.length) e.push(`path: ${JSON.stringify(path)}`);
+        if (s.writable) e.push('writable: true');
+      }
+      e.push(`seed: ${JSON.stringify(seedRows(s))}`);
+      return `  ${s.name}: { ${e.join(', ')} },`;
+    });
+    out.push(`const SOURCES = {\n${entries.join('\n')}\n};`);
+    out.push("const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);\nconst withIds = rows => rows.map(row => ({ id: uid(), ...row }));");
+
+    const fetchCases = [];
+    if (kinds.has('memory')) fetchCases.push("case 'memory':\n  return withIds(src.seed);");
+    if (kinds.has('local')) fetchCases.push("case 'local': {\n  let saved = null;\n  try { saved = JSON.parse(localStorage.getItem(src.key)); } catch {}\n  return Array.isArray(saved) ? saved : withIds(src.seed);\n}");
+    if (kinds.has('file')) fetchCases.push("case 'file':\n  return FILE[src.key] || withIds(src.seed);");
+    const http = ['rest', 'api'].filter(k => kinds.has(k));
+    if (http.length) fetchCases.push(http.map(k => `case '${k}':`).join('\n') + " {\n  const res = await fetch(src.url);\n  if (!res.ok) throw new Error(`Couldn't load ${src.url} (${res.status})`);\n  let data = await res.json();\n  for (const key of src.path || []) data = data == null ? data : data[key];\n  return withIds(Array.isArray(data) ? data : []);\n}");
+    out.push(`// Reads a source's rows.\nasync function fetchRows(src) {\n  switch (src.kind) {\n${ind(fetchCases.join('\n'), 4)}\n  }\n}`);
+
+    const saveCases = [];
+    if (kinds.has('local')) saveCases.push("case 'local':\n  try { localStorage.setItem(src.key, JSON.stringify(S[name])); } catch (error) { console.warn(error); }\n  break;");
+    if (kinds.has('file')) saveCases.push("case 'file':\n  FILE[src.key] = S[name];\n  fs.writeFileSync(DATA_FILE, JSON.stringify(FILE, null, 2));\n  break;");
+    if (http.length) {
+      const guard = kinds.has('rest') ? (kinds.has('api') ? "case 'rest':\n  if (!src.writable) break;\n  // falls through\ncase 'api': {" : "case 'rest': {\n  if (!src.writable) break;") : "case 'api': {";
+      saveCases.push(guard + "\n  const url = op === 'add' ? src.url : src.url + '/' + encodeURIComponent(item.id);\n  const method = { add: 'POST', update: 'PATCH', remove: 'DELETE' }[op];\n  const body = op === 'remove' ? undefined : JSON.stringify(op === 'add' ? item : patch);\n  const res = await fetch(url, { method, body, headers: { 'Content-Type': 'application/json' } });\n  if (!res.ok) throw new Error(`Couldn't save to ${src.url} (${res.status})`);\n  break;\n}");
+    }
+    out.push(saveCases.length
+      ? `// Stores a change. op is 'add', 'update' or 'remove'.\nasync function save(name, op, item, patch) {\n  const src = SOURCES[name];\n  switch (src.kind) {\n${ind(saveCases.join('\n'), 4)}\n  }\n}`
+      : '// In-memory data is not stored anywhere.\nasync function save() {}');
+
+    out.push(`async function load(name) {
+  S[name] = await fetchRows(SOURCES[name]);
+  render();
+}
+
+async function add(name, data) {
+  const item = { id: uid(), ...data };
+  S[name] = [...S[name], item];
+  render();
+  await save(name, 'add', item);
+  return item;
+}
+
+async function update(name, item, patch) {
+  Object.assign(item, patch);
+  render();
+  await save(name, 'update', item, patch);
+}
+
+async function remove(name, item) {
+  S[name] = S[name].filter(row => row !== item);
+  render();
+  await save(name, 'remove', item);
+}
+
+async function clear(name) {
+  const rows = S[name];
+  S[name] = [];
+  render();
+  for (const item of rows) await save(name, 'remove', item);
+}`);
+    return out.join('\n\n');
+  }
+
+  function genHelpers() {
+    const out = [];
+    if (helpers.has('html')) out.push('// Turns an HTML string into nodes.\nconst html = markup => document.createRange().createContextualFragment(markup);');
+    if (helpers.has('by')) out.push("// Sorts by a field; '-field' sorts in reverse.\nconst by = key => {\n  const desc = key.startsWith('-'), field = desc ? key.slice(1) : key;\n  return (a, b) => (a[field] > b[field] ? 1 : a[field] < b[field] ? -1 : 0) * (desc ? -1 : 1);\n};");
+    if (helpers.has('fmt')) out.push("const fmt = value => (value === true ? '✓' : value === false ? '' : value ?? '');");
+    if (helpers.has('bar')) out.push("const bar = (value, max) => {\n  const filled = Math.round(Math.max(0, Math.min(1, value / max)) * 20);\n  return '[' + '#'.repeat(filled) + '.'.repeat(20 - filled) + '] ' + value + '/' + max;\n};");
+    if (helpers.has('strip')) out.push("const strip = markup => String(markup).replace(/<[^>]*>/g, '').replace(/\\s+/g, ' ').trim();");
+    if (helpers.has('choose')) out.push("async function choose(choices) {\n  choices.forEach(([, label], i) => IO.print('  ' + (i + 1) + ') ' + label));\n  const choice = choices[Number(await IO.ask('> ')) - 1];\n  return choice && choice[0];\n}");
+    if (helpers.has('pick')) out.push("// Shows one item's own menu.\nasync function pick(rows, screen) {\n  const index = Number(await IO.ask('Item number (1-' + rows.length + '): ')) - 1;\n  const item = rows[index];\n  if (!item) return;\n  const { out, opts } = screen(item, index);\n  out.forEach(line => IO.print('  ' + line));\n  opts.forEach((option, i) => IO.print('  ' + (i + 1) + ') ' + option.label));\n  IO.print('  b) Back');\n  const option = opts[Number(await IO.ask('> ')) - 1];\n  if (option) await option.run();\n}");
+    return out.join('\n\n');
+  }
+
+  // ------------------------------------------------------------------ web app
+
+  function css() {
+    const a = P.app, dark = a.theme === 'dark';
+    const light = '--bg: #ffffff; --fg: #1d2230; --muted: #667085; --line: #dde1ea; --card: #f6f7fb;';
+    const darkVars = '--bg: #12151c; --fg: #e8ebf1; --muted: #98a1b3; --line: #2c3242; --card: #1a1e28;';
+    const out = [`:root { --accent: ${a.accent || '#4f7cff'}; --on-accent: ${contrastText(a.accent)}; ${dark ? darkVars : light} --radius: 10px; color-scheme: ${dark ? 'dark' : a.theme === 'light' ? 'light' : 'light dark'}; }`];
+    if (a.theme === 'auto' || !a.theme) out.push(`@media (prefers-color-scheme: dark) { :root { ${darkVars} } }`);
+    out.push(
+      '* { box-sizing: border-box; }',
+      'body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }',
+      `#app { max-width: ${px(a.width || 720)}; margin: 0 auto; padding: 16px 16px 48px; }`,
+      'h1, h2, h3, h4, p { margin: 0; }',
+      'h1, h2, h3, h4 { line-height: 1.2; }',
+      'a { color: var(--accent); }',
+      '.stack { display: flex; flex-direction: column; gap: 12px; }',
+      '.muted { color: var(--muted); }',
+      '.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 8px 14px; border-radius: 8px; max-width: calc(100vw - 32px); }');
+    const per = {
+      row: ['.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }', '.row > .field, .row > input { flex: 1 1 160px; }'],
+      card: ['.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 10px; }'],
+      text: ['.text { white-space: pre-line; }'],
+      image: ['img { max-width: 100%; height: auto; border-radius: var(--radius); display: block; }'],
+      divider: ['hr { border: 0; border-top: 1px solid var(--line); width: 100%; margin: 4px 0; }'],
+      progress: ['progress { width: 100%; accent-color: var(--accent); }'],
+      button: ['.btn { font: inherit; border: 1px solid transparent; border-radius: 8px; padding: 8px 14px; cursor: pointer; background: var(--accent); color: var(--on-accent); }',
+        '.btn:hover { filter: brightness(1.08); }', '.btn.secondary { background: transparent; border-color: var(--line); color: var(--fg); }',
+        '.btn.ghost { background: transparent; color: var(--muted); padding: 4px 8px; }', '.btn.danger { background: #d63c3c; color: #fff; }'],
+      field: ['.field { display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--muted); }',
+        'input, select, textarea { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; width: 100%; min-width: 0; }',
+        'input[type=range] { padding: 0; accent-color: var(--accent); }'],
+      checkbox: ['.check { display: flex; gap: 8px; align-items: center; cursor: pointer; }', '.check input { width: 18px; height: 18px; accent-color: var(--accent); margin: 0; }'],
+      list: ['.list { display: flex; flex-direction: column; gap: 8px; }', '.list.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }',
+        '.item { padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--radius); }', '.item.row { display: flex; gap: 10px; align-items: center; }',
+        '.item.row > .text { flex: 1; }', '.item.stack { gap: 6px; }'],
+      table: ['.table-wrap { overflow-x: auto; }', 'table { border-collapse: collapse; width: 100%; }',
+        'th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }', 'th { font-size: 14px; color: var(--muted); font-weight: 600; }'],
+      nav: ['.nav { display: flex; gap: 4px; margin: 0 0 16px; border-bottom: 1px solid var(--line); overflow-x: auto; }',
+        '.nav a { padding: 10px 12px; text-decoration: none; color: var(--muted); border-bottom: 2px solid transparent; white-space: nowrap; }',
+        '.nav a[aria-current] { color: var(--fg); border-bottom-color: var(--accent); }'],
+    };
+    const need = new Set(used);
+    if (['input', 'textarea', 'select', 'slider', 'form'].some(t => used.has(t))) need.add('field');
+    if (used.has('form')) { need.add('button'); need.add('checkbox'); }
+    if (used.has('table')) need.add('button');
+    if (used.has('list')) need.add('row');
+    if (multi && a.nav !== false) need.add('nav');
+    for (const k of Object.keys(per)) if (need.has(k)) out.push(...per[k]);
+    if (P.css?.trim()) out.push('', '/* Custom CSS (App › Custom CSS) */', P.css.trim());
+    return out.join('\n');
+  }
+
+  function script() {
+    const pages = P.pages.map(page => {
+      const root = page.root;
+      used.add('stack');
+      const kids = (root.children || []).map(c => webNode(c, {}));
+      const st = styleOf(root);
+      const attrs = [['class', q(['page stack', root.props.cls].filter(Boolean).join(' '))], ['style', st ? q(st) : null]];
+      if (design) attrs.push(['data-n', q(root.id)]);
+      const body = `return ${hc('main', attrs, kids)};`;
+      return `// Page: ${page.name}\nfunction ${pageFn(page)}() {\n${ind(destr(body) + body, 2)}\n}`;
+    });
+    const home = P.pages[0];
+    let router;
+    if (multi) {
+      const map = P.pages.map(pg => `  ${propKey(pg.path)}: ${pageFn(pg)},`).join('\n');
+      const nav = P.app.nav !== false
+        ? `\n\nfunction nav(current) {\n  return h('nav', { class: 'nav' },\n${P.pages.map(pg => `    h('a', { href: ${q('#/' + pg.path)}, 'aria-current': current === ${q(pg.path)} && 'page' }, ${q(pg.name)})`).join(',\n')}\n  );\n}`
+        : '';
+      const routing = design
+        ? `let ROUTE = ${q(opts.route || home.path)};\nfunction route() {\n  return Object.hasOwn(PAGES, ROUTE) ? ROUTE : ${q(home.path)};\n}\nfunction go(path) {\n  ROUTE = path;\n  parent.postMessage({ mpe: 'page', path }, '*');\n  render();\n}`
+        : `function route() {\n  const path = location.hash.slice(2);\n  return Object.hasOwn(PAGES, path) ? path : ${q(home.path)};\n}\nfunction go(path) {\n  location.hash = '#/' + path;\n}\naddEventListener('hashchange', render);`;
+      router = `// --- Pages: #/path in the address picks one.\nconst PAGES = {\n${map}\n};\n${routing}${nav}\n\nfunction view() {\n  const page = route();\n  return h('div', { class: 'app' }, ${P.app.nav !== false ? 'nav(page), ' : ''}PAGES[page]());\n}`;
+    } else {
+      router = `function view() {\n  return h('div', { class: 'app' }, ${pageFn(home)}());\n}`;
+    }
+    const data = genData();
+    const parts = [
+      "'use strict';",
+      `// ${P.app.name}: made with Mini PWA Engine (https://sonusario.github.io/mini_pwa_engine/).\n// Plain JavaScript and no framework: the few helpers below are all it needs.\n// S holds the state; view() draws the page from S; actions change S and call render().`,
+      genState(),
+      document.getElementById('t-dom').textContent.trim(),
+      genHelpers(),
+      data,
+      actions.length ? '// --- Actions\n\n' + actions.join('\n\n') : '',
+      '// --- Views\n\n' + [...views, ...pages].join('\n\n'),
+      router,
+      '// --- Start\nrender();' + (P.sources.length ? '\nfor (const name in SOURCES) load(name).catch(fail);' : '') +
+        (mode === 'web' && P.app.offline !== false ? "\nif ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js');" : ''),
+    ];
+    return parts.filter(Boolean).join('\n\n');
+  }
+
+  function html() {
+    const js = script(); // first, so css() knows which components are used
+    const a = P.app;
+    const safe = s => s.replace(/<\/(script)/gi, '<\\/$1');
+    const head = [
+      '<meta charset="utf-8">',
+      '<meta name="viewport" content="width=device-width, initial-scale=1">',
+      `<title>${escHtml(a.name)}</title>`,
+      a.desc ? `<meta name="description" content="${escHtml(a.desc)}">` : '',
+      `<meta name="theme-color" content="${escHtml(a.accent || '#4f7cff')}">`,
+      design ? '' : '<link rel="icon" href="icon.svg">',
+      design ? '' : '<link rel="manifest" href="manifest.json">',
+      design ? '' : '<link rel="apple-touch-icon" href="icon-192.png">',
+    ].filter(Boolean).join('\n');
+    return `<!doctype html>
+<html lang="en">
+<head>
+${head}
+<style>
+${css()}
+</style>
+</head>
+<body>
+<div id="app"></div>
+${design ? `<script>\n${designScript(opts)}\n<\/script>\n` : ''}<script>
+${safe(js)}
+<\/script>
+${P.js?.trim() ? `<script>\n// Custom JavaScript (App › Custom JavaScript)\n${safe(P.js.trim())}\n<\/script>\n` : ''}</body>
+</html>
+`;
+  }
+
+  // ------------------------------------------------------------------ terminal app
+
+  function core() {
+    const screens = P.pages.map(page => {
+      const body = (page.root.children || []).map(c => cliNode(c, {})).filter(Boolean).join('\n');
+      const full = `const out = [], opts = [];\n${body}\nreturn { out, opts };`;
+      return `// Page: ${page.name}\nfunction screen_${page.path.replace(/\W/g, '_')}() {\n${ind(destr(full) + full, 2)}\n}`;
+    });
+    const home = P.pages[0];
+    const data = genData();
+    const parts = [
+      "'use strict';",
+      genState(),
+      `let IO, current = ${q(home.path)};\nconst render = () => {}; // the terminal redraws after every choice\nfunction toast(message) {\n  IO.print('» ' + message);\n}\nfunction fail(error) {\n  IO.print('! ' + ((error && error.message) || error));\n}\nfunction go(path) {\n  current = path;\n}`,
+      genHelpers(),
+      data,
+      actions.length ? '// --- Actions (the same as the web app\'s)\n\n' + actions.join('\n\n') : '',
+      '// --- Screens\n\n' + [...views, ...screens].join('\n\n'),
+      `const SCREENS = {\n${P.pages.map(pg => `  ${propKey(pg.path)}: screen_${pg.path.replace(/\W/g, '_')},`).join('\n')}\n};\nconst TITLES = ${JSON.stringify(Object.fromEntries(P.pages.map(pg => [pg.path, pg.name])))};`,
+      `async function main(io) {
+  IO = io;
+${P.sources.length ? '  await Promise.all(Object.keys(SOURCES).map(name => load(name).catch(fail)));\n' : ''}  for (;;) {
+    const { out, opts } = SCREENS[current]();
+${multi ? "    for (const path in TITLES) if (path !== current) opts.push({ label: '→ ' + TITLES[path], run: () => go(path) });\n" : ''}    IO.print('');
+    IO.print('=== ' + ${q(P.app.name)}${multi ? " + ' › ' + TITLES[current]" : ''} + ' ===');
+    out.forEach(line => IO.print(line));
+    IO.print('');
+    opts.forEach((option, i) => IO.print('  ' + (i + 1) + ') ' + option.label));
+    IO.print('  q) Quit');
+    const answer = (await IO.ask('> ')).trim().toLowerCase();
+    if (answer === 'q' || answer === 'quit') return;
+    const option = opts[Number(answer) - 1];
+    if (!option) {
+      IO.print('Type a number from the menu, or q to quit.');
+      continue;
+    }
+    try {
+      await option.run();
+    } catch (error) {
+      fail(error);
+    }
+  }
+}`,
+    ];
+    return parts.filter(Boolean).join('\n\n');
+  }
+
+  return { html, core };
+}
+
+function optionList(text) {
+  return String(text || '').split('\n').map(s => s.trim()).filter(Boolean).map(line => {
+    const i = line.indexOf('|');
+    return i < 0 ? [line, line] : [line.slice(0, i).trim(), line.slice(i + 1).trim()];
+  });
+}
+
+// Runs inside the preview: picks parts of the app on click, outlines the
+// selection, and passes console output and page changes back to the engine.
+function designScript(opts) {
+  return `(() => {
+  let interact = ${!!opts.interact};
+  const post = message => parent.postMessage(Object.assign({ mpe: true }, message), '*');
+  const selStyle = document.createElement('style'), hoverStyle = document.createElement('style');
+  document.head.append(selStyle, hoverStyle);
+  const outline = (style, id, css) => { style.textContent = id ? '[data-n="' + id + '"] { ' + css + ' }' : ''; };
+  const select = id => outline(selStyle, id, 'outline: 2px solid #4f7cff !important; outline-offset: 2px;');
+  select(${q(opts.sel || '')});
+  addEventListener('click', e => {
+    const link = e.target.closest && e.target.closest('a[href^="#/"]');
+    if (link) {
+      e.preventDefault();
+      if (interact) go(link.getAttribute('href').slice(2));
+    }
+    if (interact) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    const node = e.target.closest && e.target.closest('[data-n]');
+    post({ type: 'select', id: node ? node.dataset.n : null });
+  }, true);
+  addEventListener('submit', e => { if (!interact) { e.preventDefault(); e.stopImmediatePropagation(); } }, true);
+  addEventListener('mouseover', e => {
+    const node = !interact && e.target.closest && e.target.closest('[data-n]');
+    outline(hoverStyle, node && node.dataset.n, 'outline: 1px dashed #4f7cff99; outline-offset: 2px;');
+  });
+  addEventListener('message', e => {
+    if (e.source !== parent || !e.data) return;
+    if (e.data.type === 'sel') select(e.data.id);
+    if (e.data.type === 'mode') { interact = e.data.interact; outline(hoverStyle); }
+  });
+  const show = v => { if (typeof v === 'string') return v; try { return JSON.stringify(v); } catch { return String(v); } };
+  for (const level of ['log', 'info', 'warn', 'error']) {
+    const original = console[level];
+    console[level] = (...args) => {
+      original.apply(console, args);
+      post({ type: 'log', level, text: args.map(a => a instanceof Error ? a.message : show(a)).join(' ') });
+    };
+  }
+  addEventListener('error', e => post({ type: 'log', level: 'error', text: e.message + (e.lineno ? ' (line ' + e.lineno + ')' : '') }));
+  addEventListener('unhandledrejection', e => post({ type: 'log', level: 'error', text: String((e.reason && e.reason.message) || e.reason) }));
+  let scrollTimer = 0;
+  addEventListener('scroll', () => { clearTimeout(scrollTimer); scrollTimer = setTimeout(() => post({ type: 'scroll', y: scrollY }), 100); }, { passive: true });
+  addEventListener('load', () => setTimeout(() => scrollTo(0, ${Number(opts.scroll) || 0}), 30));
+})();`;
+}
+
+// =============================================================================
+// Export: every file of the generated project
+// =============================================================================
+
+const template = (id, fill = {}) => $(id).textContent.trim().replace(/@@(\w+)@@/g, (m, k) => fill[k] ?? m) + '\n';
+
+function hashText(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
+  return (h >>> 0).toString(36);
+}
+
+function iconSvg(app) {
+  const glyph = [...(app.icon || app.name || 'A')].slice(0, 2).join('');
+  const size = glyph.length > 1 && !/\p{Extended_Pictographic}/u.test(glyph) ? 220 : 300;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="${escHtml(app.iconBg || app.accent || '#4f7cff')}"/>` +
+    `<text x="256" y="256" dy=".35em" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="${size}" font-weight="700" fill="${escHtml(app.iconFg || '#ffffff')}">${escHtml(glyph)}</text></svg>\n`;
+}
+
+function iconPng(app, size) {
+  const svg = new Blob([iconSvg(app)], { type: 'image/svg+xml' });
+  const url = URL.createObjectURL(svg);
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = c.height = size;
+      c.getContext('2d').drawImage(img, 0, 0, size, size);
+      URL.revokeObjectURL(url);
+      c.toBlob(b => (b ? b.arrayBuffer().then(buf => resolve(new Uint8Array(buf))) : reject(new Error('No PNG'))), 'image/png');
+    };
+    img.onerror = () => reject(new Error("Couldn't draw the icon"));
+    img.src = url;
+  });
+}
+
+const SQL_TYPES = {
+  sqlite: { text: 'TEXT', longtext: 'TEXT', email: 'TEXT', url: 'TEXT', date: 'TEXT', number: 'REAL', boolean: 'INTEGER' },
+  postgres: { text: 'TEXT', longtext: 'TEXT', email: 'TEXT', url: 'TEXT', date: 'TEXT', number: 'DOUBLE PRECISION', boolean: 'BOOLEAN' },
+};
+const sqlValue = (v, type, dialect) => type === 'number' ? String(Number(v) || 0)
+  : type === 'boolean' ? (dialect === 'postgres' ? String(v === true || v === 'true') : (v === true || v === 'true' ? '1' : '0'))
+  : "'" + String(v ?? '').replace(/'/g, "''") + "'";
+
+function schemaSql(P, dialect) {
+  const T = SQL_TYPES[dialect];
+  const tables = apiSources(P).map(s => {
+    const cols = ['  "id" TEXT PRIMARY KEY'];
+    for (const f of s.fields) {
+      const def = f.type === 'number' ? '0' : f.type === 'boolean' ? (dialect === 'postgres' ? 'false' : '0') : "''";
+      cols.push(`  "${f.name}" ${T[f.type] || 'TEXT'} NOT NULL DEFAULT ${def}`);
+    }
+    cols.push(dialect === 'postgres' ? '  "created_at" TIMESTAMPTZ NOT NULL DEFAULT now()' : '  "created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP');
+    return `CREATE TABLE IF NOT EXISTS "${s.name}" (\n${cols.join(',\n')}\n);`;
+  });
+  return `-- Tables for ${P.app.name}'s Server API data (${dialect === 'postgres' ? 'PostgreSQL' : 'SQLite'}).\n-- Generated by Mini PWA Engine. One table per data source; every row has an id.\n\n${tables.join('\n\n')}\n`;
+}
+
+function seedSql(P, dialect) {
+  const lines = [];
+  for (const s of apiSources(P)) {
+    (s.seed || []).forEach((row, i) => {
+      const cols = ['"id"', ...s.fields.map(f => `"${f.name}"`)];
+      const vals = [`'${s.name}-${i + 1}'`, ...s.fields.map(f => sqlValue(row[f.name], f.type, dialect))];
+      lines.push(`INSERT INTO "${s.name}" (${cols.join(', ')}) VALUES (${vals.join(', ')});`);
+    });
+  }
+  return `-- Sample rows for ${P.app.name}.\n${lines.join('\n') || '-- (none)'}\n`;
+}
+
+function schemaJs(P) {
+  const tables = {}, seed = {};
+  for (const s of apiSources(P)) {
+    tables[s.name] = Object.fromEntries(s.fields.map(f => [f.name, f.type]));
+    seed[s.name] = (s.seed || []).map((row, i) => ({ id: `${s.name}-${i + 1}`, ...Object.fromEntries(s.fields.map(f => {
+      const v = row[f.name];
+      return [f.name, f.type === 'number' ? Number(v) || 0 : f.type === 'boolean' ? v === true || v === 'true' : v ?? ''];
+    })) }));
+  }
+  return `// The API's collections and their fields, from the app's Server API data
+// sources. Field types: ${FIELD_TYPES.map(t => t[0]).join(', ')}.
+
+const TABLES = ${JSON.stringify(tables, null, 2)};
+
+// Sample rows, added when the data store is created.
+const SEED = ${JSON.stringify(seed, null, 2)};
+
+module.exports = { TABLES, SEED };
+`;
+}
+
+function hooksJs(P) {
+  const blocks = apiSources(P).map(s => `  ${propKey(s.name)}: {
+    // async beforeCreate(row, req) { return row; },
+    // async beforeUpdate(existing, patch, req) { return patch; },
+    // async beforeDelete(existing, req) {},
+  },`);
+  return `// Server-side logic: rules the server enforces, whatever the app sends.
+// Each hook may change the row or throw to refuse the request. For example:
+//
+//   async beforeCreate(row) {
+//     if (!row.title.trim()) throw Object.assign(new Error('A title is needed'), { status: 400 });
+//     return row;
+//   },
+
+module.exports = {
+${blocks.join('\n')}
+};
+`;
+}
+
+// Which extra targets apply, given the app and the export settings.
+function targetsFor(P) {
+  const t = P.targets, api = apiSources(P).length > 0;
+  return {
+    cli: t.cli !== false, python: !!t.python, nginx: !!t.nginx, docker: !!t.docker,
+    api, apiServer: api && t.api !== false, appServer: api && t.app !== false,
+    db: api ? (t.db || 'json') : null,
+  };
+}
+
+function genReadme(P, files) {
+  const a = P.app, t = targetsFor(P), has = f => f in files;
+  const s = [`# ${a.name}`, ''];
+  if (a.desc) s.push(a.desc, '');
+  s.push('Made with [Mini PWA Engine](https://sonusario.github.io/mini_pwa_engine/). Open `project.mpe.json` in the engine to keep editing.', '',
+    '## The app', '',
+    '`index.html` is the whole app: plain HTML, CSS and JavaScript with no framework and nothing to build. ' +
+    (a.offline !== false ? '`sw.js` keeps it working offline, and ' : '') + '`manifest.json` and the icons let people install it.', '',
+    '### Host it on GitHub Pages', '',
+    '1. Put these files in a GitHub repository (the folder can be the repository root).',
+    '2. In the repository, open **Settings › Pages**, choose **Deploy from a branch**, pick the branch and the folder, and save.',
+    `3. After a minute the app is at \`https://<user>.github.io/<repository>/\`.`, '');
+  if (t.api) s.push('GitHub Pages only serves files, so the **Server API** data needs one of the servers below running somewhere. Point the app at it with **App › API address** in the engine (for example `https://api.example.com/api`) and export again.', '');
+  s.push('### Run it on your computer', '',
+    'Service workers need a real web server, not a file opened from disk. With Node 18 or later:', '',
+    '```sh', t.appServer ? 'node server/app.js      # the app and its API, http://localhost:8080/' : 'node server/web.js      # http://localhost:8080/', '```', '');
+  if (has('server/web.py')) s.push('Or with Python 3 (no API):', '', '```sh', 'python3 server/web.py', '```', '');
+  s.push('## Servers', '', '| File | What it is |', '| --- | --- |',
+    '| `server/web.js` | **Web server.** Serves the app files only. No packages needed. |');
+  if (t.apiServer) s.push('| `server/api.js` | **API server.** The REST API on its own, with CORS, for when the app is hosted elsewhere. Port 3000. |');
+  if (t.appServer) s.push('| `server/app.js` | **Application server.** The app and its API on one port (8080), with server-side rules in `server/lib/hooks.js`. Deploy this one. |');
+  if (has('server/web.py')) s.push('| `server/web.py` | Web server in Python, standard library only. |');
+  if (has('server/nginx.conf')) s.push('| `server/nginx.conf` | nginx site config for hosting the files' + (t.api ? ', passing `/api` to the application server' : '') + '. |');
+  s.push('');
+  if (t.api) {
+    const names = apiSources(P).map(x => '`' + x.name + '`').join(', ');
+    s.push('### API', '', `Collections: ${names}. Each has:`, '',
+      '```', 'GET    /api/<collection>        list', 'POST   /api/<collection>        add (JSON body)', 'GET    /api/<collection>/<id>   one row',
+      'PATCH  /api/<collection>/<id>   change fields', 'DELETE /api/<collection>/<id>   delete', '```', '',
+      'Fields are checked against `server/lib/schema.js`: unknown fields are dropped and values are converted to the field type.', '');
+    s.push('### Database', '');
+    if (t.db === 'json') s.push('Data is kept in `server/data/db.json`, created on first run with the sample rows. Fine for prototypes; pick SQLite or PostgreSQL in the engine\'s Export dialog for more.', '');
+    if (t.db === 'sqlite') s.push('Data is kept in SQLite at `server/data/app.db`, using Node\'s built-in `node:sqlite` (Node 22.13+, or 22.5+ with `--experimental-sqlite`). Tables come from `server/db/schema.sql`; sample rows are added when the file is first made.', '');
+    if (t.db === 'postgres') s.push('Data is kept in PostgreSQL. Install the driver, start a database, and point `DATABASE_URL` at it:', '',
+      '```sh', 'cd server && npm install', 'docker compose up -d db          # PostgreSQL 16 with db/schema.sql and db/seed.sql loaded',
+      'DATABASE_URL=postgres://app:app@localhost:5432/app node app.js', '```', '',
+      'Without Docker, create a database and run `server/db/schema.sql` then `server/db/seed.sql` in it.', '');
+  }
+  if (has('server/Dockerfile')) s.push('### Docker', '', '```sh', 'cd server', 'docker compose up --build', '```', '', 'Then open http://localhost:8080/.', '');
+  if (t.cli) s.push('## Terminal version', '', '`cli/app.js` is the same app as a text program: the same state, data and actions, with each page printed as text and its buttons and inputs as a numbered menu. It suits places without a screen of their own, like a server shell or a device on a serial console.', '',
+    '```sh', 'node cli/app.js', '```', '',
+    (P.sources.some(x => x.kind === 'local') ? 'Data the web app keeps on the device is kept in a JSON file next to where you run it (`DATA_FILE` changes it). ' : '') +
+    (t.api ? 'Server API data comes from `API_URL` (default `http://localhost:8080/api`).' : ''), '');
+  s.push('## Files', '', '```', ...Object.keys(files).sort().concat(['icon-192.png', 'icon-512.png']).sort(), '```', '');
+  return s.join('\n').replace(/\n{3,}/g, '\n\n');
+}
+
+// All text files of the export, keyed by path. Icons (PNG) are added by exportZip.
+function genFiles(P) {
+  const a = P.app, t = targetsFor(P), slug = slugify(a.name), files = {};
+  const index = makeGen(P, 'web').html();
+  files['index.html'] = index;
+  files['icon.svg'] = iconSvg(a);
+  files['manifest.json'] = JSON.stringify({
+    name: a.name, short_name: a.short || a.name, description: a.desc || undefined,
+    start_url: './', scope: './', display: 'standalone',
+    background_color: a.theme === 'dark' ? '#12151c' : '#ffffff', theme_color: a.accent || '#4f7cff',
+    icons: [
+      { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml' },
+      { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
+      { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+    ],
+  }, null, 2) + '\n';
+  if (a.offline !== false) {
+    files['sw.js'] = template('t-sw', {
+      NAME: a.name, CACHE: slug + '-' + hashText(index + JSON.stringify(a)),
+      FILES: JSON.stringify(['./', './index.html', './manifest.json', './icon.svg', './icon-192.png', './icon-512.png']),
+    });
+  }
+  files['project.mpe.json'] = JSON.stringify(P, null, 2) + '\n';
+  files['.gitignore'] = 'server/data/\nserver/node_modules/\n' + (t.cli ? '*-data.json\n' : '');
+
+  if (t.cli) {
+    files['cli/app.js'] = `#!/usr/bin/env node
+// ${a.name}, in a terminal. Made with Mini PWA Engine.
+// The same state, data and actions as the web app; each page is printed as
+// text and its buttons and inputs become a numbered menu.
+//   node cli/app.js          (Node 18 or later)
+
+${makeGen(P, 'node').core()}
+
+// --- Terminal input and output
+// Lines are queued as they arrive, so typed-ahead or piped answers aren't lost.
+const readline = require('node:readline');
+const rl = readline.createInterface({ input: process.stdin });
+const lines = [], waiting = [];
+let ended = false;
+const endOfInput = () => Object.assign(new Error('Input ended'), { code: 'EOF' });
+rl.on('line', line => (waiting.length ? waiting.shift().resolve(line) : lines.push(line)));
+rl.on('close', () => {
+  ended = true;
+  for (const w of waiting.splice(0)) w.reject(endOfInput());
+});
+function ask(question) {
+  process.stdout.write(question);
+  if (lines.length) return Promise.resolve(lines.shift());
+  if (ended) return Promise.reject(endOfInput());
+  return new Promise((resolve, reject) => waiting.push({ resolve, reject }));
+}
+main({ print: line => console.log(line), ask })
+  .catch(error => { if (error.code !== 'EOF') console.error(error); })
+  .finally(() => rl.close());
+`;
+  }
+
+  // Servers
+  files['server/web.js'] = template('t-web', { NAME: a.name });
+  files['server/lib/static.js'] = template('t-static');
+  if (t.python) files['server/web.py'] = template('t-py', { NAME: a.name });
+  if (t.nginx) {
+    files['server/nginx.conf'] = template('t-nginx', {
+      NAME: a.name, SLUG: slug,
+      API: t.api ? '\n    # The API is answered by the application server (node server/app.js).\n    location /api/ {\n        proxy_pass http://127.0.0.1:8080;\n        proxy_set_header Host $host;\n    }\n' : '',
+    });
+  }
+  if (t.api) {
+    files['server/lib/api.js'] = template('t-api');
+    files['server/lib/schema.js'] = schemaJs(P);
+    files['server/lib/hooks.js'] = hooksJs(P);
+    files['server/lib/store.js'] = template(t.db === 'sqlite' ? 't-store-sqlite' : t.db === 'postgres' ? 't-store-pg' : 't-store-json');
+    if (t.apiServer) files['server/api.js'] = template('t-apiserver', { NAME: a.name });
+    if (t.appServer) files['server/app.js'] = template('t-app', { NAME: a.name });
+    if (t.db === 'sqlite' || t.db === 'postgres') {
+      files['server/db/schema.sql'] = schemaSql(P, t.db);
+      files['server/db/seed.sql'] = seedSql(P, t.db);
+    }
+  }
+  const scripts = { start: t.appServer ? 'node app.js' : 'node web.js', web: 'node web.js' };
+  if (t.apiServer) scripts.api = 'node api.js';
+  if (t.cli) scripts.cli = 'node ../cli/app.js';
+  files['server/package.json'] = JSON.stringify({
+    name: slug, version: '1.0.0', private: true, description: `Servers for ${a.name}`,
+    scripts, engines: { node: t.db === 'sqlite' ? '>=22.13' : '>=18' },
+    dependencies: t.db === 'postgres' ? { pg: '^8.12.0' } : undefined,
+  }, null, 2) + '\n';
+  if (t.docker) {
+    const main = t.appServer ? 'server/app.js' : 'server/web.js';
+    files['server/Dockerfile'] = `# Builds ${a.name} with its server. From the server/ folder: docker compose up --build
+FROM node:22-alpine
+WORKDIR /srv
+COPY . .
+${t.db === 'postgres' ? 'RUN cd server && npm install --omit=dev\n' : ''}ENV PORT=8080
+EXPOSE 8080
+CMD ["node", "${main}"]
+`;
+    files['.dockerignore'] = '.git\nserver/node_modules\nserver/data\n*-data.json\n';
+    const pg = t.db === 'postgres';
+    files['server/docker-compose.yml'] = `services:
+  app:
+    build:
+      context: ..
+      dockerfile: server/Dockerfile
+    ports:
+      - "8080:8080"
+${pg ? '    environment:\n      DATABASE_URL: postgres://app:app@db:5432/app\n    depends_on:\n      - db\n' : t.api ? '    volumes:\n      - appdata:/srv/server/data\n' : ''}${pg ? `  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: app
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d:ro
+      - pgdata:/var/lib/postgresql/data
+` : ''}${pg ? 'volumes:\n  pgdata: {}\n' : t.api ? 'volumes:\n  appdata: {}\n' : ''}`;
+  }
+  files['README.md'] = genReadme(P, files);
+  return files;
+}
+
+// --- A minimal .zip writer (stored, not compressed: the files are small).
+
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+
+function crc32(bytes) {
+  let c = 0xffffffff;
+  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+}
+
+function makeZip(entries) {
+  const enc = new TextEncoder(), parts = [], central = [];
+  const d = new Date();
+  const time = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1);
+  const date = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+  let offset = 0;
+  for (const { name, data } of entries) {
+    const nameBytes = enc.encode(name), crc = crc32(data);
+    const local = new DataView(new ArrayBuffer(30));
+    local.setUint32(0, 0x04034b50, true);
+    local.setUint16(4, 20, true);
+    local.setUint16(6, 0x0800, true); // names are UTF-8
+    local.setUint16(10, time, true);
+    local.setUint16(12, date, true);
+    local.setUint32(14, crc, true);
+    local.setUint32(18, data.length, true);
+    local.setUint32(22, data.length, true);
+    local.setUint16(26, nameBytes.length, true);
+    parts.push(local, nameBytes, data);
+    const c = new DataView(new ArrayBuffer(46));
+    c.setUint32(0, 0x02014b50, true);
+    c.setUint16(4, 20, true);
+    c.setUint16(6, 20, true);
+    c.setUint16(8, 0x0800, true);
+    c.setUint16(12, time, true);
+    c.setUint16(14, date, true);
+    c.setUint32(16, crc, true);
+    c.setUint32(20, data.length, true);
+    c.setUint32(24, data.length, true);
+    c.setUint16(28, nameBytes.length, true);
+    c.setUint32(42, offset, true);
+    central.push(c, nameBytes);
+    offset += 30 + nameBytes.length + data.length;
+  }
+  const size = central.reduce((n, p) => n + p.byteLength, 0);
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true);
+  end.setUint16(8, entries.length, true);
+  end.setUint16(10, entries.length, true);
+  end.setUint32(12, size, true);
+  end.setUint32(16, offset, true);
+  return new Blob([...parts, ...central, end], { type: 'application/zip' });
+}
+
+function download(name, data, type) {
+  const blob = data instanceof Blob ? data : new Blob([data], { type: type || 'text/plain' });
+  const a = el('a', { href: URL.createObjectURL(blob), download: name });
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+
+async function exportZip() {
+  const files = genFiles(P), slug = slugify(P.app.name), enc = new TextEncoder();
+  const entries = Object.entries(files).map(([name, text]) => ({ name: slug + '/' + name, data: enc.encode(text) }));
+  try {
+    entries.push({ name: slug + '/icon-192.png', data: await iconPng(P.app, 192) });
+    entries.push({ name: slug + '/icon-512.png', data: await iconPng(P.app, 512) });
+  } catch (error) {
+    toast(error.message);
+  }
+  entries.sort((x, y) => x.name.localeCompare(y.name));
+  download(slug + '.zip', makeZip(entries));
+}
+
+// =============================================================================
+// Projects
+// =============================================================================
+
+let P;            // the project being edited
+let sel = null;   // selected component id
+let pageId = null;
+
+function blankProject() {
+  return {
+    v: 1, seq: 1,
+    app: { name: 'My App', short: 'App', desc: '', accent: '#4f7cff', theme: 'auto', width: 720, icon: '✦', iconBg: '#4f7cff', iconFg: '#ffffff', offline: true, nav: true, apiBase: './api' },
+    state: [], sources: [],
+    pages: [{ id: 'p1', name: 'Home', path: 'home', root: { id: 'n1', type: 'stack', props: {}, style: {}, children: [], on: {} } }],
+    css: '', js: '',
+    targets: { cli: true, python: false, nginx: false, docker: false, api: true, app: true, db: 'json' },
+  };
+}
+
+// Builds a starter project. N(type, props, children, on) makes a component.
+function starter(fn) {
+  const p = blankProject();
+  let seq = 1;
+  const N = (type, props = {}, kids, on = {}) => ({
+    id: 'n' + (++seq), type, props: { ...clone(TYPES[type].d), ...props }, style: {},
+    children: TYPES[type].box ? kids || [] : undefined, on,
+  });
+  fn(p, N);
+  p.seq = seq;
+  return p;
+}
+
+const STARTERS = [
+  { id: 'todo', name: 'To-do list', desc: 'Add, tick off and clear tasks. Kept on the device.', make: () => starter((p, N) => {
+    Object.assign(p.app, { name: 'To-do', short: 'To-do', desc: 'A small to-do list that works offline.', icon: '✓', accent: '#3d7cf2', iconBg: '#3d7cf2' });
+    p.state.push({ name: 'draft', type: 'text', initial: '' });
+    p.sources.push({ name: 'todos', kind: 'local', fields: [{ name: 'title', type: 'text' }, { name: 'done', type: 'boolean' }],
+      seed: [{ title: 'Try the Mini PWA Engine', done: true }, { title: 'Build my own app', done: false }] });
+    const addSteps = [{ kind: 'guard', expr: 'draft.trim()' }, { kind: 'add', source: 'todos', values: { title: 'draft.trim()', done: 'false' } }, { kind: 'set', target: 'draft', expr: "''" }];
+    p.pages[0].root.children = [
+      N('heading', { text: 'To-do', level: 1 }),
+      N('row', { wrap: false }, [
+        N('input', { label: '', placeholder: 'What needs doing?', bind: 'draft' }, null, { enter: clone(addSteps) }),
+        N('button', { label: 'Add' }, null, { click: clone(addSteps) }),
+      ]),
+      N('list', { source: 'todos' }, [
+        N('checkbox', { label: '', bind: 'item.done' }),
+        N('text', { text: '{{item.title}}' }),
+        N('button', { label: '✕', variant: 'ghost' }, null, { click: [{ kind: 'remove' }] }),
+      ]),
+      N('row', { justify: 'between' }, [
+        N('text', { text: '{{todos.filter(t => !t.done).length}} left', muted: true }),
+        N('button', { label: 'Clear done', variant: 'secondary', show: 'todos.some(t => t.done)' }, null, { click: [{ kind: 'js', code: "for (const item of S.todos.filter(t => t.done)) await remove('todos', item);" }] }),
+      ]),
+    ];
+  }) },
+  { id: 'counter', name: 'Counter', desc: 'The smallest app: one number and three buttons.', make: () => starter((p, N) => {
+    Object.assign(p.app, { name: 'Counter', short: 'Counter', icon: '#', accent: '#e0663e', iconBg: '#e0663e' });
+    p.state.push({ name: 'count', type: 'number', initial: '0' });
+    p.pages[0].root.style = { align: 'center', padding: '32' };
+    p.pages[0].root.children = [
+      N('heading', { text: 'Counter', level: 1 }),
+      N('heading', { text: '{{count}}', level: 1 }),
+      N('row', { justify: 'center' }, [
+        N('button', { label: '−1', variant: 'secondary' }, null, { click: [{ kind: 'set', target: 'count', expr: 'count - 1' }] }),
+        N('button', { label: '+1' }, null, { click: [{ kind: 'set', target: 'count', expr: 'count + 1' }] }),
+        N('button', { label: 'Reset', variant: 'ghost' }, null, { click: [{ kind: 'set', target: 'count', expr: '0' }] }),
+      ]),
+    ];
+  }) },
+  { id: 'notes', name: 'Shared notes', desc: 'Notes stored by a server: exports an API, app server and database.', make: () => starter((p, N) => {
+    Object.assign(p.app, { name: 'Shared Notes', short: 'Notes', desc: 'Notes kept on a server, so every device sees the same ones.', icon: '✎', accent: '#8a5cf6', iconBg: '#8a5cf6' });
+    p.sources.push({ name: 'notes', kind: 'api', fields: [{ name: 'title', type: 'text' }, { name: 'body', type: 'longtext' }, { name: 'pinned', type: 'boolean' }],
+      seed: [{ title: 'Welcome', body: 'These notes live on the server made by Export.', pinned: true }, { title: 'Groceries', body: 'Oats, lemons, coffee', pinned: false }] });
+    p.pages[0].root.children = [
+      N('heading', { text: 'Notes', level: 1 }),
+      N('card', {}, [N('heading', { text: 'New note', level: 3 }), N('form', { source: 'notes', submit: 'Save note' })]),
+      N('list', { source: 'notes', layout: 'grid', sort: '-pinned' }, [
+        N('heading', { text: '{{item.pinned ? "📌 " : ""}}{{item.title}}', level: 3 }),
+        N('text', { text: '{{item.body}}' }),
+        N('row', {}, [
+          N('button', { label: '{{item.pinned ? "Unpin" : "Pin"}}', variant: 'secondary' }, null, { click: [{ kind: 'update', values: { pinned: '!item.pinned' } }] }),
+          N('button', { label: 'Delete', variant: 'ghost' }, null, { click: [{ kind: 'remove' }] }),
+        ]),
+      ]),
+    ];
+  }) },
+  { id: 'reader', name: 'Reader', desc: 'Two pages, data from a public JSON address, and a detail view.', make: () => starter((p, N) => {
+    Object.assign(p.app, { name: 'Reader', short: 'Reader', desc: 'Posts from a public API.', icon: 'R', accent: '#1f9d74', iconBg: '#1f9d74' });
+    p.state.push({ name: 'open', type: 'json', initial: 'null' });
+    p.sources.push({ name: 'posts', kind: 'rest', url: 'https://jsonplaceholder.typicode.com/posts?_limit=12', path: '', writable: false,
+      fields: [{ name: 'title', type: 'text' }, { name: 'body', type: 'longtext' }], seed: [] });
+    p.pages.push({ id: 'p2', name: 'Post', path: 'post', root: null });
+    const post = N('stack', {}, [
+      N('link', { text: '← All posts', page: 'p1' }),
+      N('heading', { text: '{{open ? open.title : "Pick a post"}}', level: 1 }),
+      N('text', { text: '{{open ? open.body : ""}}' }),
+    ]);
+    p.pages[1].root = post;
+    p.pages[0].root.children = [
+      N('heading', { text: 'Reader', level: 1 }),
+      N('text', { text: 'Posts from jsonplaceholder.typicode.com. Tap one to read it.', muted: true }),
+      N('list', { source: 'posts', layout: 'stack', empty: 'Loading…' }, [
+        N('heading', { text: '{{item.title}}', level: 3 }),
+      ], { itemclick: [{ kind: 'set', target: 'open', expr: 'item' }, { kind: 'go', page: 'p2' }] }),
+    ];
+  }) },
+  { id: 'blank', name: 'Blank', desc: 'An empty page.', make: () => {
+    const p = blankProject();
+    p.pages[0].root.children = [{ id: 'n2', type: 'heading', props: { text: 'My App', level: 1 }, style: {}, on: {} }];
+    p.seq = 2;
+    return p;
+  } },
+];
+
+// =============================================================================
+// Tree helpers
+// =============================================================================
+
+const curPage = () => P.pages.find(p => p.id === pageId) || P.pages[0];
+
+function walk(node, fn, parent = null) {
+  fn(node, parent);
+  for (const child of node.children || []) walk(child, fn, node);
+}
+
+function locate(id) {
+  for (const page of P.pages) {
+    let hit = null;
+    walk(page.root, (n, parent) => { if (n.id === id) hit = { node: n, parent, page }; });
+    if (hit) return hit;
+  }
+  return null;
+}
+
+// The chain of components from the page root down to `id`.
+function pathTo(id) {
+  const page = locate(id)?.page;
+  if (!page) return [];
+  const find = (n, trail) => {
+    if (n.id === id) return [...trail, n];
+    for (const c of n.children || []) { const r = find(c, [...trail, n]); if (r) return r; }
+    return null;
+  };
+  return find(page.root, []) || [];
+}
+
+// The data source items come from, for a component inside a List.
+function itemSource(id, includeSelf) {
+  const chain = pathTo(id);
+  if (!includeSelf) chain.pop();
+  for (let i = chain.length - 1; i >= 0; i--) if (chain[i].type === 'list') return chain[i].props.source || null;
+  return null;
+}
+
+function makeNode(type, listSrc) {
+  const node = { id: 'n' + (++P.seq), type, props: clone(TYPES[type].d), style: {}, on: {} };
+  if (TYPES[type].box) node.children = [];
+  const src = P.sources.find(s => s.name === listSrc);
+  if (src) {
+    const first = src.fields.find(f => f.type !== 'boolean') || src.fields[0];
+    const flag = src.fields.find(f => f.type === 'boolean');
+    if (type === 'text' && first) node.props.text = `{{item.${first.name}}}`;
+    if (type === 'heading' && first) node.props.text = `{{item.${first.name}}}`;
+    if (type === 'checkbox' && flag) Object.assign(node.props, { bind: 'item.' + flag.name, label: '' });
+    if (type === 'button') { node.props.label = 'Delete'; node.props.variant = 'ghost'; node.on.click = [{ kind: 'remove' }]; }
+  }
+  if (['list', 'table', 'form'].includes(type) && P.sources[0]) node.props.source = P.sources[0].name;
+  if (type === 'list' && P.sources[0]) {
+    const f = P.sources[0].fields.find(x => x.type !== 'boolean') || P.sources[0].fields[0];
+    if (f) node.children.push({ id: 'n' + (++P.seq), type: 'text', props: { text: `{{item.${f.name}}}`, muted: false }, style: {}, on: {} });
+  }
+  return node;
+}
+
+function insertNode(type, targetId, pos) {
+  const page = curPage();
+  let parent, index;
+  const target = targetId && locate(targetId);
+  if (!target || target.page !== page) { parent = page.root; index = parent.children.length; }
+  else if (pos === 'inside' || (!pos && TYPES[target.node.type].box)) { parent = target.node; index = parent.children.length; }
+  else {
+    parent = target.parent || page.root;
+    index = target.parent ? parent.children.indexOf(target.node) + (pos === 'before' ? 0 : 1) : parent.children.length;
+  }
+  const src = itemSource(parent.id, true);
+  if (type === 'list' && src) return toast("A List can't go inside another List.");
+  const node = makeNode(type, src);
+  parent.children.splice(index, 0, node);
+  select(node.id);
+  touch(null, true);
+}
+
+function moveNode(id, targetId, pos) {
+  const from = locate(id), to = locate(targetId);
+  if (!from || !to || !from.parent || id === targetId) return;
+  if (pathTo(targetId).some(n => n.id === id)) return; // not into itself
+  const newParent = pos === 'inside' ? to.node : to.parent;
+  if (!newParent) return;
+  if (from.node.type === 'list' || JSON.stringify(from.node).includes('"type":"list"')) {
+    if (itemSource(newParent.id, true)) return toast("A List can't go inside another List.");
+  }
+  from.parent.children.splice(from.parent.children.indexOf(from.node), 1);
+  const siblings = newParent.children;
+  const at = pos === 'inside' ? siblings.length : siblings.indexOf(to.node) + (pos === 'after' ? 1 : 0);
+  siblings.splice(at, 0, from.node);
+  touch(null, true);
+}
+
+function reId(node) {
+  walk(node, n => { n.id = 'n' + (++P.seq); });
+  return node;
+}
+
+// =============================================================================
+// History and saving
+// =============================================================================
+
+const hist = { past: [], future: [], cur: '', key: null, t: 0 };
+let saveTimer = 0;
+
+function resetHistory() {
+  hist.past = [];
+  hist.future = [];
+  hist.cur = JSON.stringify(P);
+  updateUndo();
+}
+
+function commit(key) {
+  const snap = JSON.stringify(P), now = Date.now();
+  if (snap === hist.cur) return;
+  if (!(key && key === hist.key && now - hist.t < 1200)) {
+    hist.past.push(hist.cur);
+    if (hist.past.length > 150) hist.past.shift();
+  }
+  hist.cur = snap;
+  hist.future = [];
+  hist.key = key;
+  hist.t = now;
+  updateUndo();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(persist, 300);
+}
+
+function persist() {
+  try { localStorage.setItem('mpe:project', JSON.stringify(P)); } catch (error) { console.warn(error); }
+}
+
+function undoRedo(back) {
+  const from = back ? hist.past : hist.future, to = back ? hist.future : hist.past;
+  if (!from.length) return;
+  to.push(hist.cur);
+  hist.cur = from.pop();
+  hist.key = null;
+  P = JSON.parse(hist.cur);
+  if (!locate(sel)) sel = null;
+  if (!P.pages.some(p => p.id === pageId)) pageId = P.pages[0].id;
+  updateUndo();
+  persist();
+  renderAll();
+}
+
+function updateUndo() {
+  $('undoBtn').disabled = !hist.past.length;
+  $('redoBtn').disabled = !hist.future.length;
+}
+
+// Called after every edit. `key` merges quick edits to one field into one undo step.
+function touch(key, structural) {
+  commit(key);
+  $('appTitle').textContent = P.app.name;
+  renderLayers();
+  if (structural) { renderInspector(); renderLeft(); }
+  schedulePreview();
+}
+
+function loadProject(p) {
+  P = p;
+  sel = null;
+  pageId = P.pages[0].id;
+  resetHistory();
+  persist();
+  renderAll();
+}
+
+// =============================================================================
+// Renaming state and data keeps the expressions that use them working
+// =============================================================================
+
+const reEsc = s => s.replace(/[$]/g, '\\$');
+
+function mapStrings(fn) {
+  for (const page of P.pages) walk(page.root, n => {
+    for (const f of TYPES[n.type].f) if (typeof n.props[f.k] === 'string') n.props[f.k] = fn(n.props[f.k], f.t, n);
+    if (n.props.show) n.props.show = fn(n.props.show, 'expr', n);
+    for (const steps of Object.values(n.on || {})) for (const s of steps) {
+      if (s.expr) s.expr = fn(s.expr, 'expr', n);
+      if (s.text) s.text = fn(s.text, 'tpl', n);
+      if (s.code) s.code = fn(s.code, 'js', n);
+      if (s.target) s.target = fn(s.target, 'state', n);
+      if (s.source) s.source = fn(s.source, 'source', n);
+      if (s.values) for (const k in s.values) s.values[k] = fn(s.values[k], 'expr', n);
+    }
+  });
+  P.js = fn(P.js || '', 'js');
+}
+
+function renameName(old, name) {
+  const bare = new RegExp(`(?<![\\w$.])${reEsc(old)}(?![\\w$])`, 'g');
+  const inS = new RegExp(`\\bS\\.${reEsc(old)}(?![\\w$])`, 'g');
+  mapStrings((s, kind) => {
+    if (kind === 'expr') return s.replace(bare, name);
+    if (kind === 'tpl' || kind === 'tplarea' || kind === 'code') return s.replace(/\{\{([\s\S]+?)\}\}/g, (m, e) => '{{' + e.replace(bare, name) + '}}');
+    if (kind === 'js') return s.replace(inS, 'S.' + name).replace(new RegExp(`(['"])${reEsc(old)}\\1`, 'g'), `$1${name}$1`);
+    if ((kind === 'bind' || kind === 'state' || kind === 'source') && s === old) return name;
+    return s;
+  });
+}
+
+function renameField(srcName, old, name) {
+  const re = new RegExp(`(?<![\\w$])item\\.${reEsc(old)}(?![\\w$])`, 'g');
+  mapStrings((s, kind, n) => {
+    if (kind === 'bind') return s === 'item.' + old ? 'item.' + name : s;
+    if (kind === 'fields' && n && n.props.source === srcName) return s.split(',').map(x => (x.trim() === old ? name : x.trim())).join(', ');
+    if (kind === 'sort') return s.replace(new RegExp(`^(-?)${reEsc(old)}$`), `$1${name}`);
+    if (kind === 'tpl' || kind === 'tplarea' || kind === 'code') return s.replace(/\{\{([\s\S]+?)\}\}/g, (m, e) => '{{' + e.replace(re, 'item.' + name) + '}}');
+    if (kind === 'expr' || kind === 'js') return s.replace(re, 'item.' + name);
+    return s;
+  });
+  for (const page of P.pages) walk(page.root, n => {
+    for (const steps of Object.values(n.on || {})) for (const s of steps) {
+      if (s.values && old in s.values && (s.source === srcName || s.kind === 'update')) {
+        s.values[name] = s.values[old];
+        delete s.values[old];
+      }
+    }
+  });
+  for (const row of P.sources.find(s => s.name === srcName)?.seed || []) {
+    if (old in row) { row[name] = row[old]; delete row[old]; }
+  }
+}
+
+function nameProblem(name, except) {
+  if (!IDENT.test(name)) return 'Use letters, digits and _ only, not starting with a digit.';
+  if (RESERVED.has(name)) return `"${name}" is used by the generated code.`;
+  const taken = [...P.state.map(v => v.name), ...P.sources.map(s => s.name)].filter(n => n !== except);
+  if (taken.includes(name)) return `"${name}" is already used.`;
+  return '';
+}
+
+// =============================================================================
+// Panel building blocks
+// =============================================================================
+
+function field(label, control, hint) {
+  return el('label', { class: 'f' }, el('span', {}, label), control, hint ? el('span', { class: 'hint' }, hint) : null);
+}
+
+// A text control tied to obj[key].
+function textCtl(obj, key, { area, mono, ph, rows, onChange, type, key: histKey } = {}) {
+  const c = el(area ? 'textarea' : 'input', {
+    class: mono ? 'mono' : null, placeholder: ph || null, rows: area ? rows || 3 : null,
+    type: area ? null : type || 'text', spellcheck: mono ? 'false' : null, value: obj[key] ?? '',
+  });
+  c.addEventListener('input', () => {
+    obj[key] = type === 'number' ? (c.value === '' ? '' : Number(c.value)) : c.value;
+    if (onChange) onChange(c.value);
+    touch(histKey || key + ':' + (obj.id || ''));
+  });
+  return c;
+}
+
+function selectCtl(obj, key, options, { onChange, structural = true } = {}) {
+  const c = el('select', {}, options.map(([v, l]) => el('option', { value: String(v) }, l)));
+  c.value = obj[key] == null ? '' : String(obj[key]);
+  c.addEventListener('change', () => {
+    const o = options.find(([v]) => String(v) === c.value);
+    obj[key] = o ? o[0] : c.value;
+    if (onChange) onChange(obj[key]);
+    touch(null, structural);
+  });
+  return c;
+}
+
+function checkCtl(obj, key, label, structural) {
+  const c = el('input', { type: 'checkbox', checked: !!obj[key] });
+  c.addEventListener('change', () => { obj[key] = c.checked; touch(null, structural); });
+  return el('label', { class: 'f check' }, c, el('span', {}, label));
+}
+
+function colorCtl(obj, key, ph) {
+  const text = el('input', { value: obj[key] || '', placeholder: ph || 'none', class: 'mono' });
+  const pick = el('input', { type: 'color', value: /^#[\da-f]{6}$/i.test(obj[key] || '') ? obj[key] : '#888888' });
+  text.addEventListener('input', () => { obj[key] = text.value; if (/^#[\da-f]{6}$/i.test(text.value)) pick.value = text.value; touch(key + ':' + (obj.id || '')); });
+  pick.addEventListener('input', () => { obj[key] = text.value = pick.value; touch(key + ':' + (obj.id || '')); });
+  return el('div', { class: 'inline' }, pick, text);
+}
+
+function namesHint(src) {
+  const names = [...P.state.map(v => v.name), ...P.sources.map(s => s.name)];
+  const fields = P.sources.find(s => s.name === src)?.fields.map(f => 'item.' + f.name) || [];
+  const all = [...names, ...fields, ...(src ? ['index'] : [])];
+  if (!all.length) return null;
+  return el('div', { class: 'names' }, 'Expressions can use ', all.map((n, i) => [i ? ' ' : '', el('code', {}, n)]));
+}
+
+// =============================================================================
+// Left pane: Add, Layers, Pages, Data, App
+// =============================================================================
+
+let leftTab = 'add';
+let dragType = null, dragId = null;
+
+function renderLeft() {
+  for (const b of $('leftTabs').children) b.setAttribute('aria-selected', String(b.dataset.tab === leftTab));
+  const body = $('leftBody');
+  body.replaceChildren(...({ add: addPanel, layers: layersPanel, pages: pagesPanel, data: dataPanel, app: appPanel }[leftTab])());
+}
+
+function addPanel() {
+  const out = [el('p', { class: 'muted small' }, 'Click to add after the selected part (or inside it, if it holds others). Drag onto Layers to place exactly.')];
+  for (const g of ['Layout', 'Content', 'Input', 'Data']) {
+    out.push(el('h3', { class: 'sec' }, g));
+    out.push(el('div', { class: 'palette' }, Object.entries(TYPES).filter(([, T]) => T.g === g).map(([type, T]) =>
+      el('button', {
+        draggable: 'true', title: T.tip || T.l,
+        onclick: () => insertNode(type, sel),
+        ondragstart: e => { dragType = type; dragId = null; e.dataTransfer.setData('text/plain', type); e.dataTransfer.effectAllowed = 'copy'; },
+      }, el('b', {}, T.i), T.l))));
+  }
+  out.push(el('h3', { class: 'sec' }, 'Layers'));
+  out.push(layersTree());
+  return out;
+}
+
+function layersPanel() {
+  return [el('p', { class: 'muted small' }, 'Drag to reorder. Drop on the middle of a Stack, Row, Card or List to put it inside.'), layersTree()];
+}
+
+function nodeSummary(n) {
+  const p = n.props;
+  return p.text || p.label || p.source || p.html?.replace(/<[^>]*>/g, '') || '';
+}
+
+function layersTree() {
+  const page = curPage();
+  const ul = el('ul', { class: 'tree', id: 'tree' });
+  const rec = (n, depth) => {
+    const T = TYPES[n.type];
+    const li = el('li', {
+      class: n.id === sel ? 'on' : null, style: `--d:${depth}`, 'data-id': n.id, draggable: depth ? 'true' : null,
+      onclick: () => select(n.id),
+      ondragstart: e => { dragId = n.id; dragType = null; e.dataTransfer.setData('text/plain', n.id); e.dataTransfer.effectAllowed = 'move'; },
+    }, el('span', { class: 'ic' }, T.i), el('span', { class: 'nm' }, depth ? n.name || T.l : 'Page: ' + page.name),
+    el('span', { class: 'hint' }, depth ? nodeSummary(n) : ''));
+    ul.append(li);
+    for (const c of n.children || []) rec(c, depth + 1);
+  };
+  rec(page.root, 0);
+  const posFor = (li, e) => {
+    const node = locate(li.dataset.id)?.node;
+    if (!node) return null;
+    if (node === page.root) return 'inside';
+    const r = li.getBoundingClientRect(), y = (e.clientY - r.top) / r.height;
+    if (TYPES[node.type].box && y > 0.25 && y < 0.75) return 'inside';
+    return y < 0.5 ? 'before' : 'after';
+  };
+  const clearMarks = () => ul.querySelectorAll('li').forEach(li => li.classList.remove('drop-before', 'drop-after', 'drop-inside'));
+  ul.addEventListener('dragover', e => {
+    const li = e.target.closest('li');
+    if (!li || (!dragType && !dragId)) return;
+    e.preventDefault();
+    clearMarks();
+    const pos = posFor(li, e);
+    if (pos) li.classList.add('drop-' + pos);
+  });
+  ul.addEventListener('dragleave', e => { if (!ul.contains(e.relatedTarget)) clearMarks(); });
+  ul.addEventListener('drop', e => {
+    const li = e.target.closest('li');
+    clearMarks();
+    if (!li) return;
+    e.preventDefault();
+    const pos = posFor(li, e);
+    if (dragType) insertNode(dragType, li.dataset.id, pos);
+    else if (dragId) moveNode(dragId, li.dataset.id, pos);
+    dragType = dragId = null;
+  });
+  return ul;
+}
+
+function renderLayers() {
+  const old = $('tree');
+  if (old) old.replaceWith(layersTree());
+}
+
+function pagesPanel() {
+  const out = [el('p', { class: 'muted small' }, 'The first page is where the app opens. Each page has its own address: #/path.')];
+  P.pages.forEach((page, i) => {
+    const path = el('input', { value: page.path, class: 'mono', title: 'Address: #/' + page.path, 'aria-label': 'Path' });
+    path.addEventListener('input', () => {
+      const v = path.value.trim();
+      const ok = /^[a-z0-9][a-z0-9-]*$/.test(v) && !P.pages.some(o => o !== page && o.path === v);
+      path.classList.toggle('bad', !ok);
+      if (ok) { page.path = v; touch('path:' + page.id); }
+    });
+    out.push(el('div', { class: 'pagerow' },
+      el('input', { type: 'radio', name: 'curpage', checked: page.id === curPage().id, 'aria-label': 'Edit ' + page.name, onchange: () => showPage(page.id) }),
+      textCtl(page, 'name', { onChange: () => renderLayers() }),
+      path,
+      el('span', { class: 'inline' },
+        el('button', { class: 'icon', title: 'Make this the first page', disabled: i === 0, onclick: () => { P.pages.splice(i, 1); P.pages.unshift(page); touch(null, true); } }, '⇡'),
+        el('button', { class: 'icon danger', title: 'Delete page', disabled: P.pages.length < 2, onclick: () => {
+          if (!confirm(`Delete the page "${page.name}"?`)) return;
+          P.pages.splice(i, 1);
+          if (pageId === page.id) pageId = P.pages[0].id;
+          sel = null;
+          touch(null, true);
+        } }, '✕'))));
+  });
+  out.push(el('div', { class: 'btnrow' }, el('button', { onclick: () => {
+    let n = P.pages.length + 1;
+    while (P.pages.some(p => p.path === 'page' + n)) n++;
+    const page = { id: 'p' + (++P.seq), name: 'Page ' + n, path: 'page' + n, root: { id: 'n' + (++P.seq), type: 'stack', props: {}, style: {}, children: [], on: {} } };
+    page.root.children.push({ id: 'n' + (++P.seq), type: 'heading', props: { text: page.name, level: 1 }, style: {}, on: {} });
+    P.pages.push(page);
+    pageId = page.id;
+    sel = null;
+    touch(null, true);
+  } }, '+ Add page')));
+  out.push(checkCtl(P.app, 'nav', 'Show page tabs at the top', false));
+  return out;
+}
+
+function showPage(id) {
+  pageId = id;
+  sel = null;
+  renderAll();
+}
+
+function dataPanel() {
+  const out = [];
+  out.push(el('h3', { class: 'sec' }, 'State'));
+  out.push(el('p', { class: 'muted small' }, 'Values the app remembers while it runs: what\'s typed in a box, a count, the open item.'));
+  const rows = el('div', { class: 'rows' });
+  P.state.forEach((v, i) => {
+    const name = el('input', { value: v.name, class: 'mono', 'aria-label': 'Name' });
+    name.addEventListener('change', () => {
+      const problem = nameProblem(name.value.trim(), v.name);
+      if (problem) { toast(problem); name.value = v.name; return; }
+      renameName(v.name, name.value.trim());
+      v.name = name.value.trim();
+      touch(null, true);
+    });
+    const init = v.type === 'boolean' ? selectCtl(v, 'initial', [['false', 'false'], ['true', 'true']])
+      : textCtl(v, 'initial', { mono: true, ph: v.type === 'json' ? 'null' : 'start value' });
+    rows.append(el('div', { class: 'r', style: 'grid-template-columns: 1fr 86px 1fr auto' }, name,
+      selectCtl(v, 'type', STATE_TYPES, { onChange: t => { v.initial = t === 'number' ? '0' : t === 'boolean' ? 'false' : t === 'json' ? 'null' : ''; } }),
+      init,
+      el('button', { class: 'icon danger', title: 'Delete', onclick: () => { P.state.splice(i, 1); touch(null, true); } }, '✕')));
+  });
+  out.push(rows);
+  out.push(el('button', { onclick: () => {
+    let n = 1;
+    while (nameProblem('value' + n)) n++;
+    P.state.push({ name: 'value' + n, type: 'text', initial: '' });
+    touch(null, true);
+  } }, '+ State'));
+
+  out.push(el('h3', { class: 'sec', style: 'margin-top: 18px' }, 'Data sources'));
+  out.push(el('p', { class: 'muted small' }, 'Lists of items, each with the same fields. Show them with List, Table and Form.'));
+  P.sources.forEach((s, i) => out.push(sourceBox(s, i)));
+  out.push(el('button', { onclick: () => {
+    let n = 1;
+    while (nameProblem('items' + (n > 1 ? n : ''))) n++;
+    P.sources.push({ name: 'items' + (n > 1 ? n : ''), kind: 'local', fields: [{ name: 'title', type: 'text' }], seed: [], url: '', path: '', writable: false });
+    touch(null, true);
+  } }, '+ Data source'));
+  return out;
+}
+
+function sourceBox(s, i) {
+  const name = el('input', { value: s.name, class: 'mono', 'aria-label': 'Name' });
+  name.addEventListener('change', () => {
+    const problem = nameProblem(name.value.trim(), s.name);
+    if (problem) { toast(problem); name.value = s.name; return; }
+    renameName(s.name, name.value.trim());
+    s.name = name.value.trim();
+    touch(null, true);
+  });
+  const kind = SOURCE_KINDS.find(k => k[0] === s.kind) || SOURCE_KINDS[0];
+  const box = el('div', { class: 'box' },
+    el('div', { class: 'head' }, name, el('button', { class: 'icon danger', title: 'Delete source', onclick: () => {
+      if (!confirm(`Delete the data source "${s.name}"?`)) return;
+      P.sources.splice(i, 1);
+      touch(null, true);
+    } }, '✕')),
+    field('Kept in', selectCtl(s, 'kind', SOURCE_KINDS.map(k => [k[0], k[1]])), kind[2]));
+  if (s.kind === 'rest') {
+    box.append(field('Address (returns JSON)', textCtl(s, 'url', { mono: true, ph: 'https://api.example.com/items' })),
+      field('Where the list is in the reply', textCtl(s, 'path', { mono: true, ph: 'blank if the reply is the list; or data.items' })),
+      checkCtl(s, 'writable', 'Send changes back (POST, PATCH, DELETE)', false));
+  }
+  const fields = el('div', { class: 'rows' });
+  s.fields.forEach((f, j) => {
+    const fname = el('input', { value: f.name, class: 'mono', 'aria-label': 'Field name' });
+    fname.addEventListener('change', () => {
+      const v = fname.value.trim();
+      if (!IDENT.test(v) || v === 'id' || s.fields.some(o => o !== f && o.name === v)) { toast('Field names: letters, digits and _, unique, and not "id".'); fname.value = f.name; return; }
+      renameField(s.name, f.name, v);
+      f.name = v;
+      touch(null, true);
+    });
+    fields.append(el('div', { class: 'r', style: 'grid-template-columns: 1fr 100px auto' }, fname, selectCtl(f, 'type', FIELD_TYPES),
+      el('button', { class: 'icon danger', title: 'Delete field', onclick: () => { s.fields.splice(j, 1); touch(null, true); } }, '✕')));
+  });
+  box.append(el('span', { class: 'muted small' }, 'Fields (every item also gets an id)'), fields,
+    el('button', { onclick: () => {
+      let n = s.fields.length + 1;
+      while (s.fields.some(f => f.name === 'field' + n)) n++;
+      s.fields.push({ name: 'field' + n, type: 'text' });
+      touch(null, true);
+    } }, '+ Field'));
+  if (s.kind !== 'rest') box.append(seedEditor(s));
+  return box;
+}
+
+function seedEditor(s) {
+  s.seed ||= [];
+  const det = el('details', { open: s.seed.length < 6 ? true : null }, el('summary', {}, `Sample rows (${s.seed.length})`));
+  const table = el('table', {}, el('tr', {}, s.fields.map(f => el('th', {}, f.name)), el('th')));
+  s.seed.forEach((row, i) => {
+    table.append(el('tr', {}, s.fields.map(f => el('td', {}, f.type === 'boolean'
+      ? (() => { const c = el('input', { type: 'checkbox', checked: row[f.name] === true || row[f.name] === 'true' }); c.addEventListener('change', () => { row[f.name] = c.checked; touch(); }); return c; })()
+      : textCtl(row, f.name, { type: f.type === 'number' ? 'number' : 'text', key: `seed:${s.name}:${i}:${f.name}` }))),
+    el('td', {}, el('button', { class: 'icon danger', title: 'Delete row', onclick: () => { s.seed.splice(i, 1); touch(null, true); } }, '✕'))));
+  });
+  det.append(el('div', { class: 'seed' }, table), el('button', { onclick: () => { s.seed.push({}); touch(null, true); } }, '+ Row'));
+  return det;
+}
+
+function appPanel() {
+  const a = P.app;
+  return [
+    el('h3', { class: 'sec' }, 'App'),
+    field('Name', textCtl(a, 'name')),
+    field('Short name (under the icon)', textCtl(a, 'short')),
+    field('Description', textCtl(a, 'desc', { area: true, rows: 2 })),
+    el('h3', { class: 'sec' }, 'Look'),
+    field('Accent color', colorCtl(a, 'accent')),
+    field('Light or dark', selectCtl(a, 'theme', [['auto', 'Follow the device'], ['light', 'Light'], ['dark', 'Dark']], { structural: false })),
+    field('Content width (px)', textCtl(a, 'width', { type: 'number' })),
+    el('h3', { class: 'sec' }, 'Icon'),
+    el('div', { class: 'inline', style: 'align-items: flex-start; gap: 10px' },
+      el('img', { id: 'iconPreview', alt: 'App icon', width: 56, height: 56, style: 'border-radius: 12px; flex: none' }),
+      el('div', { style: 'flex: 1' },
+        field('Letter or emoji', textCtl(a, 'icon', { onChange: updateIconPreview })),
+        field('Background', colorCtl(a, 'iconBg')),
+        field('Foreground', colorCtl(a, 'iconFg')))),
+    el('h3', { class: 'sec' }, 'Progressive web app'),
+    checkCtl(a, 'offline', 'Works offline (adds a service worker)', false),
+    field('API address (Server API data)', textCtl(a, 'apiBase', { mono: true, ph: './api' }), 'Where the generated API runs. ./api when the app server hosts the app too.'),
+    el('h3', { class: 'sec' }, 'For developers'),
+    field('Custom CSS', textCtl(P, 'css', { area: true, mono: true, rows: 5, ph: '.card { box-shadow: 0 4px 12px #0002; }' })),
+    field('Custom JavaScript', textCtl(P, 'js', { area: true, mono: true, rows: 6, ph: '// Runs after the app starts. S is the state; call render() after changing it.' }),
+      'Runs after the app starts, with S, render(), add(), update(), remove(), go() and toast() available. Components can also run code (Run code step) and hold raw HTML.'),
+  ];
+}
+
+function updateIconPreview() {
+  const img = $('iconPreview');
+  if (img) img.src = 'data:image/svg+xml,' + encodeURIComponent(iconSvg(P.app));
+}
+
+// =============================================================================
+// Inspector
+// =============================================================================
+
+function renderInspector() {
+  const box = $('inspector');
+  const hit = sel && locate(sel);
+  if (!hit) {
+    box.replaceChildren(
+      el('p', {}, el('b', {}, curPage().name)),
+      el('p', { class: 'muted' }, 'Select a part of the app on the preview or in Layers to change it. Add parts from the Add tab.'),
+      el('p', { class: 'muted' }, 'Buttons and inputs do things through steps: set state, add or change items, go to a page, show a message, or run your own code.'),
+      el('div', { class: 'btnrow' }, el('button', { onclick: () => select(curPage().root.id) }, 'Page settings')));
+    return;
+  }
+  const { node: n, parent } = hit, T = TYPES[n.type], isRoot = !parent;
+  const out = [];
+  const src = itemSource(n.id, false);
+  out.push(el('div', { class: 'inline', style: 'margin-bottom: 8px' }, el('b', { style: 'flex: 1; font-size: 14px' }, T.i + '  ' + (isRoot ? 'Page' : T.l)),
+    !isRoot && el('button', { class: 'icon', title: 'Select the part that holds this', onclick: () => select(parent.id) }, '⤴')));
+  if (T.tip) out.push(el('p', { class: 'muted small' }, T.tip));
+  if (!isRoot) out.push(field('Name in Layers', textCtl(n, 'name', { ph: T.l })));
+  for (const f of T.f) out.push(propField(n, f, src));
+  if (T.f.some(f => f.t === 'tpl' || f.t === 'tplarea' || f.t === 'expr' || f.t === 'code')) {
+    out.push(el('div', { class: 'names' }, 'Text can show values: ', el('code', {}, '{{ expression }}'), '.'));
+  }
+  const evSrc = n.type === 'list' ? n.props.source : src;
+  for (const [ev, label] of T.ev || []) out.push(eventEditor(n, ev, label, evSrc));
+  out.push(namesHint(evSrc));
+  if (!isRoot) out.push(field('Show only when', textCtl(n.props, 'show', { mono: true, ph: 'always (or an expression)', key: 'show:' + n.id }), 'A JavaScript expression; hidden when false.'));
+  out.push(styleEditor(n));
+  if (!isRoot) {
+    const sibs = parent.children, i = sibs.indexOf(n);
+    out.push(el('div', { class: 'btnrow' },
+      el('button', { disabled: i === 0, onclick: () => { sibs.splice(i, 1); sibs.splice(i - 1, 0, n); touch(null, true); } }, '↑ Up'),
+      el('button', { disabled: i === sibs.length - 1, onclick: () => { sibs.splice(i, 1); sibs.splice(i + 1, 0, n); touch(null, true); } }, '↓ Down'),
+      el('button', { onclick: () => { const copy = reId(clone(n)); sibs.splice(i + 1, 0, copy); select(copy.id); touch(null, true); } }, 'Duplicate'),
+      el('button', { class: 'danger', onclick: deleteSelected }, 'Delete')));
+  }
+  box.replaceChildren(...out.filter(Boolean));
+}
+
+function propField(n, f, src) {
+  const p = n.props, label = f.l;
+  switch (f.t) {
+    case 'tpl': return field(label, textCtl(p, f.k, { ph: f.ph, key: f.k + ':' + n.id }));
+    case 'tplarea': return field(label, textCtl(p, f.k, { area: true, ph: f.ph, key: f.k + ':' + n.id }));
+    case 'text': case 'fields': case 'sort': return field(label, textCtl(p, f.k, { ph: f.ph, mono: f.t !== 'text', key: f.k + ':' + n.id }));
+    case 'area': return field(label, textCtl(p, f.k, { area: true, key: f.k + ':' + n.id }));
+    case 'code': return field(label, textCtl(p, f.k, { area: true, mono: true, rows: 5, key: f.k + ':' + n.id }));
+    case 'expr': return field(label, textCtl(p, f.k, { mono: true, ph: f.ph, key: f.k + ':' + n.id }));
+    case 'num': return field(label, textCtl(p, f.k, { type: 'number', key: f.k + ':' + n.id }));
+    case 'check': return checkCtl(p, f.k, label, false);
+    case 'sel': return field(label, selectCtl(p, f.k, f.o, { structural: false }));
+    case 'page': return field(label, selectCtl(p, f.k, [['', '(none)'], ...P.pages.map(pg => [pg.id, pg.name])], { structural: false }));
+    case 'source': {
+      if (!P.sources.length) return el('div', { class: 'f' }, el('span', {}, label), el('span', { class: 'hint' }, 'Add a data source in the Data tab first.'), el('button', { onclick: () => { leftTab = 'data'; setPane('build'); renderLeft(); } }, 'Open Data'));
+      return field(label, selectCtl(p, f.k, [['', '(choose)'], ...P.sources.map(s => [s.name, s.name])]));
+    }
+    case 'bind': {
+      const opts = [['', '(nothing)'], ...P.state.map(v => [v.name, v.name])];
+      const s = P.sources.find(x => x.name === src);
+      if (s) opts.push(...s.fields.map(x => ['item.' + x.name, 'item.' + x.name]));
+      if (p.bind && !opts.some(o => o[0] === p.bind)) opts.push([p.bind, p.bind + ' (missing)']);
+      return field(label, selectCtl(p, f.k, opts, { structural: false }), opts.length < 2 ? 'Add State in the Data tab to keep what is typed.' : null);
+    }
+  }
+  return null;
+}
+
+function eventEditor(n, ev, label, src) {
+  n.on ||= {};
+  const steps = n.on[ev] ||= [];
+  const wrap = el('div', {});
+  const kinds = Object.entries(STEPS).filter(([, S]) => !S.item || src);
+  steps.forEach((s, i) => {
+    const S = STEPS[s.kind] || STEPS.set;
+    const head = el('div', { class: 'head' },
+      el('span', { class: 'muted' }, i + 1 + '.'),
+      selectCtl(s, 'kind', kinds.map(([k, K]) => [k, K.l]), { onChange: () => { for (const k of Object.keys(s)) if (k !== 'kind') delete s[k]; } }),
+      el('button', { class: 'icon', title: 'Earlier', disabled: i === 0, onclick: () => { steps.splice(i, 1); steps.splice(i - 1, 0, s); touch(null, true); } }, '↑'),
+      el('button', { class: 'icon danger', title: 'Remove step', onclick: () => { steps.splice(i, 1); touch(null, true); } }, '✕'));
+    const body = [head];
+    for (const [k, t, l] of S.f) body.push(stepField(s, k, t, l, src, n.id + ev + i));
+    wrap.append(el('div', { class: 'step' }, body));
+  });
+  return el('div', {},
+    el('h3', { class: 'sec' }, label),
+    wrap,
+    el('button', { onclick: () => {
+      steps.push(src && ev === 'click' && !steps.length ? { kind: 'update', values: {} } : { kind: 'set' });
+      touch(null, true);
+    } }, '+ Step'));
+}
+
+function stepField(s, k, t, l, src, key) {
+  switch (t) {
+    case 'state': return field(l, selectCtl(s, k, [['', '(choose)'], ...P.state.map(v => [v.name, v.name])]));
+    case 'source': return field(l, selectCtl(s, k, [['', '(choose)'], ...P.sources.map(x => [x.name, x.name])]));
+    case 'page': return field(l, selectCtl(s, k, [['', '(choose)'], ...P.pages.map(p => [p.id, p.name])], { structural: false }));
+    case 'expr': return field(l, textCtl(s, k, { mono: true, ph: 'e.g. count + 1', key: key + k }));
+    case 'tpl': return field(l, textCtl(s, k, { ph: 'Saved {{item.title}}', key: key + k }));
+    case 'code': return field(l, textCtl(s, k, { area: true, mono: true, rows: 4, ph: "S.count = 0;\nawait add('todos', { title: 'Hi' });", key: key + k }));
+    case 'values': {
+      const srcName = s.kind === 'update' ? src : s.source;
+      const source = P.sources.find(x => x.name === srcName);
+      if (!source) return el('p', { class: 'muted small' }, 'Pick the data source first.');
+      s.values ||= {};
+      return el('div', {}, el('span', { class: 'muted small' }, l + (s.kind === 'update' ? ' (blank fields stay as they are)' : '')),
+        source.fields.map(f => el('div', { class: 'inline', style: 'margin-top: 4px' },
+          el('span', { class: 'mono small', style: 'min-width: 70px' }, f.name),
+          textCtl(s.values, f.name, { mono: true, ph: s.kind === 'update' ? '' : EMPTY_VALUE[f.type], key: key + f.name }))));
+    }
+  }
+  return null;
+}
+
+function styleEditor(n) {
+  n.style ||= {};
+  const st = n.style, fields = [];
+  for (const [k, , l, , kind, o] of STYLE_PROPS) {
+    if (kind === 'color') fields.push(field(l, colorCtl(st, k)));
+    else if (kind === 'sel') fields.push(field(l, selectCtl(st, k, o, { structural: false })));
+    else fields.push(field(l, textCtl(st, k, { ph: k === 'border' ? '1px solid #ccc' : 'e.g. 12', key: 'st' + k + n.id })));
+  }
+  fields.push(field('CSS class', textCtl(n.props, 'cls', { mono: true, key: 'cls' + n.id }), 'Style it from App › Custom CSS.'));
+  fields.push(field('More CSS', textCtl(st, 'css', { area: true, mono: true, rows: 2, ph: 'box-shadow: 0 2px 8px #0002', key: 'stcss' + n.id })));
+  const used = Object.values(st).filter(v => v && String(v).trim()).length;
+  return el('details', { open: used ? true : null }, el('summary', {}, 'Style' + (used ? ` (${used})` : '')), fields);
+}
+
+function deleteSelected() {
+  const hit = sel && locate(sel);
+  if (!hit || !hit.parent) return;
+  const sibs = hit.parent.children, i = sibs.indexOf(hit.node);
+  sibs.splice(i, 1);
+  sel = (sibs[i] || sibs[i - 1] || hit.parent).id;
+  touch(null, true);
+}
+
+function select(id) {
+  sel = id;
+  const hit = id && locate(id);
+  if (hit && hit.page.id !== curPage().id) { pageId = hit.page.id; schedulePreview(); }
+  renderLayers();
+  renderInspector();
+  postToFrame({ type: 'sel', id });
+}
+
+// =============================================================================
+// Preview, code and terminal
+// =============================================================================
+
+const ui = { view: 'design', mode: 'select', device: 'phone', scroll: 0, file: 'index.html' };
+try { Object.assign(ui, JSON.parse(localStorage.getItem('mpe:ui') || '{}')); } catch {}
+const saveUi = () => { try { localStorage.setItem('mpe:ui', JSON.stringify({ mode: ui.mode, device: ui.device, view: ui.view })); } catch {} };
+let previewTimer = 0, skipPreview = false;
+
+function schedulePreview() {
+  clearTimeout(previewTimer);
+  previewTimer = setTimeout(refreshViews, 220);
+}
+
+function refreshViews() {
+  if (ui.view === 'design') refreshPreview();
+  if (ui.view === 'code') renderCode();
+  if (ui.view === 'terminal') startTerminal();
+}
+
+function refreshPreview() {
+  if (skipPreview) { skipPreview = false; return; }
+  let doc;
+  try {
+    doc = makeGen(P, 'design', { sel, interact: ui.mode === 'interact', route: curPage().path, scroll: ui.scroll }).html();
+  } catch (error) {
+    logLine('error', 'Engine: ' + error.message);
+    return;
+  }
+  $('consoleList').replaceChildren();
+  $('frame').srcdoc = doc;
+}
+
+function postToFrame(message) {
+  try { $('frame').contentWindow.postMessage(message, '*'); } catch {}
+}
+
+function logLine(level, text) {
+  const list = $('consoleList');
+  list.append(el('li', { class: level }, text));
+  while (list.children.length > 60) list.firstChild.remove();
+  $('console').scrollTop = 1e9;
+}
+
+addEventListener('message', e => {
+  if (e.source !== $('frame').contentWindow || !e.data || !e.data.mpe) return;
+  const m = e.data;
+  if (m.type === 'select') { select(m.id); if (m.id && innerWidth <= 900) setPane('inspect'); }
+  if (m.type === 'log') logLine(m.level, m.text);
+  if (m.type === 'scroll') ui.scroll = m.y;
+  if (m.mpe === 'page' || m.type === 'page') {
+    const page = P.pages.find(p => p.path === m.path);
+    if (page && page.id !== curPage().id) { pageId = page.id; sel = null; renderLeft(); renderInspector(); }
+  }
+});
+
+function renderCode() {
+  let files;
+  try { files = genFiles(P); } catch (error) { $('fileText').textContent = 'Engine error: ' + error.message; return; }
+  if (!(ui.file in files)) ui.file = 'index.html';
+  const groups = [['App', n => !n.includes('/')], ['Terminal', n => n.startsWith('cli/')], ['Servers', n => n.startsWith('server/')]];
+  const list = $('fileList');
+  list.replaceChildren(...groups.flatMap(([g, test]) => {
+    const names = Object.keys(files).filter(test).sort();
+    if (!names.length) return [];
+    return [el('div', { class: 'grp' }, g), ...names.map(name => el('button', {
+      'aria-selected': String(name === ui.file), onclick: () => { ui.file = name; renderCode(); },
+    }, el('span', {}, name), el('span', {}, (files[name].length / 1024).toFixed(1) + ' KB')))];
+  }));
+  $('fileName').textContent = ui.file;
+  $('fileText').textContent = files[ui.file];
+}
+
+let term = null;
+function startTerminal() {
+  if (term) term.stop();
+  const out = $('termOut');
+  out.textContent = '';
+  let pending = null, stopped = false;
+  const write = s => { out.textContent += s; out.scrollTop = out.scrollHeight; };
+  const io = {
+    print: line => write(line + '\n'),
+    ask: question => new Promise((resolve, reject) => {
+      if (stopped) return reject(new Error('stopped'));
+      write(question);
+      pending = { resolve, reject };
+    }),
+  };
+  term = {
+    stop() { stopped = true; if (pending) pending.reject(new Error('stopped')); pending = null; },
+    answer(text) {
+      if (!pending) return;
+      write(text + '\n');
+      const p = pending;
+      pending = null;
+      p.resolve(text);
+    },
+  };
+  try {
+    const run = new Function('io', makeGen(P, 'term').core() + '\nreturn main(io);');
+    Promise.resolve(run(io)).then(() => { if (!stopped) write('\n[The program ended. Press Restart to run it again.]\n'); },
+      error => { if (!stopped) write('\n[Error: ' + error.message + ']\n'); });
+  } catch (error) {
+    write('[Error: ' + error.message + ']\n');
+  }
+}
+
+function setView(view) {
+  ui.view = view;
+  saveUi();
+  for (const b of $('centerTabs').querySelectorAll('[data-view]')) b.setAttribute('aria-selected', String(b.dataset.view === view));
+  $('designView').hidden = $('console').hidden = $('designTools').hidden = view !== 'design';
+  $('codeView').hidden = view !== 'code';
+  $('terminalView').hidden = view !== 'terminal';
+  if (view !== 'terminal' && term) { term.stop(); term = null; }
+  refreshViews();
+  if (view === 'terminal') $('termIn').focus();
+}
+
+function setMode(mode) {
+  ui.mode = mode;
+  saveUi();
+  for (const b of $('modeSeg').children) b.setAttribute('aria-pressed', String(b.dataset.mode === mode));
+  postToFrame({ type: 'mode', interact: mode === 'interact' });
+}
+
+function setDevice(device) {
+  ui.device = device;
+  saveUi();
+  for (const b of $('deviceSeg').children) b.setAttribute('aria-pressed', String(b.dataset.device === device));
+  $('device').className = 'device ' + (device === 'desktop' ? '' : device);
+}
+
+function setPane(pane) {
+  document.body.dataset.pane = pane;
+  for (const b of $('mobileTabs').children) b.setAttribute('aria-selected', String(b.dataset.pane === pane));
+}
+
+function renderAll() {
+  $('appTitle').textContent = P.app.name;
+  renderLeft();
+  renderInspector();
+  updateIconPreview();
+  refreshViews();
+}
+
+// =============================================================================
+// Dialogs
+// =============================================================================
+
+function openNew() {
+  $('templateList').replaceChildren(...STARTERS.map(s => el('button', { onclick: () => {
+    loadProject(s.make());
+    $('newDlg').close();
+    toast(`Started "${s.name}"`);
+  } }, el('b', {}, s.name), el('span', {}, s.desc))));
+  $('newDlg').showModal();
+}
+
+function openExport() {
+  const t = P.targets, api = apiSources(P).length > 0;
+  const opt = (key, label, note, disabled) => {
+    const c = el('input', { type: 'checkbox', checked: !disabled && t[key] !== false && (t[key] || ['cli', 'api', 'app'].includes(key)), disabled });
+    c.addEventListener('change', () => { t[key] = c.checked; commit(); showExportFiles(); });
+    return el('label', {}, c, el('span', {}, label, el('small', {}, note)));
+  };
+  const db = el('select', { disabled: !api }, [['json', 'JSON file (nothing to install)'], ['sqlite', 'SQLite (Node 22.13+, built in)'], ['postgres', 'PostgreSQL (pg package, Docker compose)']].map(([v, l]) => el('option', { value: v }, l)));
+  db.value = t.db || 'json';
+  db.addEventListener('change', () => { t.db = db.value; commit(); showExportFiles(); });
+  const why = api ? '' : ' Needs a data source kept in "Server API".';
+  $('targetList').replaceChildren(
+    el('label', {}, el('input', { type: 'checkbox', checked: true, disabled: true }), el('span', {}, 'Web server (Node)', el('small', {}, 'server/web.js serves the app. Always included; no packages.'))),
+    opt('python', 'Web server (Python)', 'server/web.py, standard library only.'),
+    opt('nginx', 'nginx config', 'server/nginx.conf for hosting the files' + (api ? ' and passing /api on.' : '.')),
+    opt('api', 'API server', 'server/api.js: REST API for Server API data, with CORS.' + why, !api),
+    opt('app', 'Application server', 'server/app.js: the app and its API together, with server-side rules.' + why, !api),
+    el('label', {}, el('span', { style: 'min-width: 13px' }), el('span', { style: 'flex: 1' }, 'Database', el('small', {}, 'Where the API keeps its data.' + why), db)),
+    opt('docker', 'Docker', 'Dockerfile and docker-compose.yml' + (api ? ' (with PostgreSQL when chosen).' : '.')),
+    opt('cli', 'Terminal version', 'cli/app.js: the same app as a text menu, for Node.'));
+  showExportFiles();
+  $('exportDlg').showModal();
+}
+
+function showExportFiles() {
+  const files = genFiles(P);
+  $('exportFiles').textContent = Object.keys(files).concat(['icon-192.png', 'icon-512.png']).sort().join('\n');
+}
+
+// --- About, with a change log read from the repository's main branch.
+// It follows the first parent from the tip, so each merged pull request is one
+// line (its title) and the commits inside it are skipped.
+
+const REPO = 'sonusario/mini_pwa_engine';
+let logLoaded = false;
+function openAbout() {
+  $('aboutDlg').showModal();
+  if (logLoaded) return;
+  logLoaded = true;
+  fetch(`https://api.github.com/repos/${REPO}/commits?sha=main&per_page=100`)
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(commits => {
+      const bySha = new Map(commits.map(c => [c.sha, c]));
+      const items = [];
+      for (let c = commits[0]; c; c = c.parents[0] && bySha.get(c.parents[0].sha)) {
+        const lines = c.commit.message.split('\n');
+        const merged = /^Merge pull request #\d+/.test(lines[0]);
+        const text = (merged && lines.slice(1).find(l => l.trim())) || lines[0];
+        items.push(el('li', {}, el('time', {}, c.commit.committer.date.slice(0, 10)), el('a', { href: c.html_url, target: '_blank', rel: 'noopener' }, text.trim())));
+      }
+      $('aboutLog').replaceChildren(...items);
+    })
+    .catch(() => {
+      logLoaded = false;
+      $('aboutLog').replaceChildren(el('li', { class: 'muted' }, "Couldn't load the change log. ",
+        el('a', { href: `https://github.com/${REPO}/commits/main`, target: '_blank', rel: 'noopener' }, 'See the history on GitHub.')));
+    });
+}
+
+// =============================================================================
+// Start
+// =============================================================================
+
+function validProject(p) {
+  return p && p.v === 1 && p.app && Array.isArray(p.pages) && p.pages.length && Array.isArray(p.state) && Array.isArray(p.sources);
+}
+
+function init() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem('mpe:project')); } catch {}
+  P = validProject(saved) ? saved : STARTERS[0].make();
+  P.targets ||= blankProject().targets;
+  pageId = P.pages[0].id;
+  resetHistory();
+
+  $('leftTabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) { leftTab = b.dataset.tab; renderLeft(); } });
+  $('centerTabs').addEventListener('click', e => { const b = e.target.closest('[data-view]'); if (b) setView(b.dataset.view); });
+  $('modeSeg').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (b) setMode(b.dataset.mode); });
+  $('deviceSeg').addEventListener('click', e => { const b = e.target.closest('[data-device]'); if (b) setDevice(b.dataset.device); });
+  $('mobileTabs').addEventListener('click', e => { const b = e.target.closest('[data-pane]'); if (b) setPane(b.dataset.pane); });
+  $('frame').addEventListener('load', () => postToFrame({ type: 'mode', interact: ui.mode === 'interact' }));
+  $('undoBtn').addEventListener('click', () => undoRedo(true));
+  $('redoBtn').addEventListener('click', () => undoRedo(false));
+  $('newBtn').addEventListener('click', openNew);
+  $('newClose').addEventListener('click', () => $('newDlg').close());
+  $('saveBtn').addEventListener('click', () => download(slugify(P.app.name) + '.mpe.json', JSON.stringify(P, null, 2) + '\n', 'application/json'));
+  $('openBtn').addEventListener('click', () => $('openFile').click());
+  $('openFile').addEventListener('change', async () => {
+    const file = $('openFile').files[0];
+    $('openFile').value = '';
+    if (!file) return;
+    try {
+      const p = JSON.parse(await file.text());
+      if (!validProject(p)) throw new Error('Not a Mini PWA Engine project');
+      p.targets ||= blankProject().targets;
+      loadProject(p);
+      toast('Opened ' + file.name);
+    } catch (error) {
+      toast("Couldn't open it: " + error.message);
+    }
+  });
+  $('exportBtn').addEventListener('click', openExport);
+  $('exportClose').addEventListener('click', () => $('exportDlg').close());
+  $('exportZip').addEventListener('click', () => exportZip().catch(error => toast(error.message)));
+  $('exportHtml').addEventListener('click', () => download('index.html', makeGen(P, 'web').html(), 'text/html'));
+  $('aboutBtn').addEventListener('click', openAbout);
+  $('aboutClose').addEventListener('click', () => $('aboutDlg').close());
+  $('clearConsole').addEventListener('click', () => $('consoleList').replaceChildren());
+  $('resetData').addEventListener('click', () => {
+    try { for (const k of Object.keys(localStorage)) if (k.startsWith('mpe-preview:')) localStorage.removeItem(k); } catch {}
+    refreshPreview();
+  });
+  $('copyFile').addEventListener('click', () => navigator.clipboard.writeText($('fileText').textContent).then(() => toast('Copied'), () => toast("Couldn't copy")));
+  $('downloadFile').addEventListener('click', () => download(ui.file.split('/').pop(), $('fileText').textContent));
+  $('termForm').addEventListener('submit', e => {
+    e.preventDefault();
+    if (term) term.answer($('termIn').value);
+    $('termIn').value = '';
+  });
+  $('termRestart').addEventListener('click', () => { startTerminal(); $('termIn').focus(); });
+  addEventListener('keydown', e => {
+    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName);
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !typing) { e.preventDefault(); undoRedo(!e.shiftKey); }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y' && !typing) { e.preventDefault(); undoRedo(false); }
+    if ((e.key === 'Delete' || e.key === 'Backspace') && !typing && sel && !document.querySelector('dialog[open]')) { e.preventDefault(); deleteSelected(); }
+  });
+
+  setPane('preview');
+  setMode(ui.mode);
+  setDevice(ui.device);
+  setView(ui.view || 'design');
+  renderLeft();
+  renderInspector();
+  updateIconPreview();
+  $('appTitle').textContent = P.app.name;
+
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js');
+}
+
+init();
+</script>
+</body>
+</html>

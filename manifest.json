@@ -1,0 +1,15 @@
+{
+  "name": "Mini PWA Engine",
+  "short_name": "PWA Engine",
+  "description": "A visual builder for small, dependency-free progressive web apps.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f1218",
+  "theme_color": "#151a24",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

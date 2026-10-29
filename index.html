@@ -61,13 +61,15 @@ a { color: var(--accent); }
 .bar .appname { color: var(--muted); max-width: 30ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ---------------------------------------------------------------- panes */
-.work { display: grid; grid-template-columns: 280px minmax(0, 1fr) 310px; min-height: 0; }
+.work { display: grid; grid-template-columns: 290px minmax(0, 1fr) 320px; min-height: 0; }
 .pane { background: var(--panel); min-height: 0; display: flex; flex-direction: column; }
 .pane.left { border-right: 1px solid var(--line); }
 .pane.right { border-left: 1px solid var(--line); }
 .pane .scroll { overflow: auto; flex: 1; padding: 10px; min-height: 0; }
 .tabs { display: flex; gap: 2px; padding: 6px 6px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
-.tabs button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; padding: 6px 9px; color: var(--muted); }
+.tabs button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; padding: 6px 7px; color: var(--muted); }
+#leftTabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+#leftTabs button { padding: 6px 6px; flex: none; }
 .tabs button[aria-selected=true] { color: var(--text); border-bottom-color: var(--accent); }
 .center { display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--stage); }
 .center .tabs { background: var(--panel); align-items: center; }
@@ -137,7 +139,7 @@ details > summary { cursor: pointer; color: var(--muted); margin: 6px 0; }
 .device iframe { width: 100%; height: 100%; border: 0; display: block; background: #fff; }
 .console {
   background: var(--code); border-top: 1px solid var(--line); font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  max-height: 120px; overflow: auto; flex: none;
+  max-height: 30vh; overflow: auto; flex: none;
 }
 .console .head { display: flex; align-items: center; gap: 8px; padding: 3px 8px; position: sticky; top: 0; background: var(--code); color: var(--muted); }
 .console .head .spacer { flex: 1; }
@@ -145,6 +147,52 @@ details > summary { cursor: pointer; color: var(--muted); margin: 6px 0; }
 .console li { white-space: pre-wrap; word-break: break-word; border-top: 1px solid var(--line); padding: 2px 0; }
 .console li.warn { color: var(--warn); }
 .console li.error { color: var(--bad); }
+.console li details { color: var(--text); }
+.console li summary { margin: 2px 0; }
+.console .frames { margin: 2px 0 4px 14px; padding: 0; list-style: none; }
+.console .frames li { border: 0; padding: 1px 0; color: var(--muted); }
+.console .frames li.mine { color: var(--text); }
+.console .frames code { display: block; white-space: pre; overflow-x: auto; background: var(--panel2); border-radius: 4px; padding: 2px 6px; margin-top: 1px; color: var(--text); }
+.console .frames button { font-size: 11px; padding: 0 6px; margin-left: 6px; }
+
+/* ---------------------------------------------------------------- layout tools (inspector) */
+.lay { border: 1px solid var(--line); border-radius: var(--radius); padding: 9px; margin: 0 0 10px; background: var(--panel2); }
+.lay > b { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 6px; }
+.lay .lbl { font-size: 12px; color: var(--muted); margin: 8px 0 3px; }
+.lay .lbl:first-of-type { margin-top: 0; }
+.chips { display: flex; gap: 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.chips button { flex: 1; border: 0; border-radius: 0; background: var(--bg); padding: 4px 6px; font-size: 12px; color: var(--muted); }
+.chips button + button { border-left: 1px solid var(--line); }
+.chips button[aria-pressed=true] { background: var(--accent); color: var(--accent-text); }
+.sizerow { display: grid; grid-template-columns: 64px 1fr 70px; gap: 6px; align-items: center; margin-bottom: 5px; }
+.sizerow > span { font-size: 12px; color: var(--muted); }
+.anchors { display: grid; grid-template-columns: repeat(4, 34px); gap: 4px; }
+.anchors button { width: 34px; height: 28px; padding: 0; position: relative; background: var(--bg); }
+.anchors button[aria-pressed=true] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.anchors button i { position: absolute; background: var(--accent); border-radius: 1px; }
+.anchors button::before { content: ''; position: absolute; inset: 5px 6px; border: 1px dashed var(--muted); border-radius: 2px; opacity: .6; }
+.aligngrid { display: grid; grid-template-columns: repeat(3, 26px); gap: 3px; padding: 4px; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; width: max-content; }
+.aligngrid button { width: 26px; height: 22px; padding: 0; border: 0; background: none; display: grid; place-items: center; }
+.aligngrid button::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--line); }
+.aligngrid button:hover::after { background: var(--muted); }
+.aligngrid button[aria-pressed=true]::after { width: 10px; height: 10px; border-radius: 2px; background: var(--accent); }
+.boxmodel { position: relative; border: 1px dashed var(--muted); border-radius: 6px; padding: 24px 40px; text-align: center; font-size: 11px; color: var(--muted); }
+.boxmodel .inner { border: 1px solid var(--line); background: var(--bg); border-radius: 4px; padding: 24px 38px; position: relative; }
+.boxmodel .core { border: 1px solid var(--line); background: var(--panel2); border-radius: 3px; padding: 4px; }
+.boxmodel input { position: absolute; width: 34px; padding: 1px 2px; text-align: center; font-size: 11px; }
+.boxmodel .tag { position: absolute; left: 6px; top: 3px; font-size: 10px; }
+.boxmodel input.t { top: 1px; left: calc(50% - 17px); } .boxmodel input.b { bottom: 1px; left: calc(50% - 17px); }
+.boxmodel input.l { left: 1px; top: calc(50% - 10px); } .boxmodel input.r { right: 1px; top: calc(50% - 10px); }
+
+/* ---------------------------------------------------------------- history (version control) */
+.commits { list-style: none; margin: 0; padding: 0; }
+.commits li { border-left: 2px solid var(--line); padding: 4px 0 8px 10px; position: relative; }
+.commits li::before { content: ''; position: absolute; left: -5px; top: 9px; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.commits li.head::before { background: var(--accent); }
+.commits li .when { color: var(--muted); font-size: 11px; }
+.commits li .acts { display: flex; gap: 8px; margin-top: 2px; }
+.changes { list-style: none; margin: 0 0 8px; padding: 0; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.changes li.add { color: var(--good); } .changes li.del { color: var(--bad); } .changes li.mod { color: var(--warn); }
 
 /* ---------------------------------------------------------------- code + terminal */
 .codeview { flex: 1; min-height: 0; display: grid; grid-template-columns: 220px minmax(0, 1fr); background: var(--panel); }
@@ -185,6 +233,8 @@ dialog .row .spacer { flex: 1; }
 .targets label { display: flex; gap: 8px; align-items: flex-start; margin: 0 0 8px; }
 .targets label input { margin-top: 3px; }
 .targets label small { display: block; color: var(--muted); }
+.targets h4 { margin: 12px 0 6px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.targets h4:first-child { margin-top: 0; }
 .filelist { font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; max-height: 180px; overflow: auto; white-space: pre; }
 .about-log { margin: 0; padding: 0; list-style: none; font-size: 13px; }
 .about-log li { margin: 0 0 4px; }
@@ -239,6 +289,7 @@ dialog .row .spacer { flex: 1; }
       <button role="tab" data-tab="pages">Pages</button>
       <button role="tab" data-tab="data">Data</button>
       <button role="tab" data-tab="app">App</button>
+      <button role="tab" data-tab="history">History</button>
     </div>
     <div class="scroll" id="leftBody"></div>
   </aside>
@@ -294,8 +345,8 @@ dialog .row .spacer { flex: 1; }
 
 <dialog id="exportDlg" aria-labelledby="exportTitle">
   <h2 id="exportTitle">Export</h2>
-  <p>The app itself is plain files: put the folder on GitHub Pages (or any static host) and it runs. It installs as a progressive web app and, if offline is on, works without a connection.</p>
-  <h3>Also generate</h3>
+  <p>The app is plain files: put the folder on GitHub Pages (or any static host) and it runs. Only what you tick below is added.</p>
+  <h3>What to include</h3>
   <div class="targets" id="targetList"></div>
   <h3>Files</h3>
   <div class="filelist" id="exportFiles"></div>
@@ -305,6 +356,12 @@ dialog .row .spacer { flex: 1; }
     <button id="exportClose">Close</button>
     <button id="exportZip" class="primary">Download .zip</button>
   </div>
+</dialog>
+
+<dialog id="diffDlg" aria-labelledby="diffTitle">
+  <h2 id="diffTitle"></h2>
+  <div id="diffBody"></div>
+  <div class="row"><button id="diffClose">Close</button></div>
 </dialog>
 
 <dialog id="aboutDlg" aria-labelledby="aboutTitle">
@@ -383,9 +440,13 @@ function toast(message) {
   setTimeout(() => note.remove(), 2600);
 }
 
-function fail(error) {
-  console.error(error);
-  toast((error && error.message) || String(error));
+// fail(error, where) reports a problem: a short message on screen, and the full
+// error with its stack trace in the console. `where` names the part of the app
+// that was running, like 'Button "Add": when clicked'.
+function fail(error, where) {
+  const message = (error && error.message) || String(error);
+  console.error(where ? where + ':' : 'Error:', error);
+  toast(where ? where + ': ' + message : message);
 }
 </script>
 
@@ -442,15 +503,12 @@ self.addEventListener('fetch', event => {
 });
 </script>
 
-<script type="text/plain" id="t-static">
-// Serves the app's files (index.html, sw.js, manifest.json, icons) from the
-// folder above server/. Only top-level files are public, so the server/ and
-// cli/ folders and their data stay private.
+<script type="text/plain" id="t-node-static">
+// --- Files: the app's own files, from the folder above server/. The server/
+// and cli/ folders and dot-files stay private. An address with no file
+// extension (a page of the app) gets index.html; a missing file gets a plain
+// 404 that names it, so a wrong address is easy to spot.
 
-const fs = require('node:fs');
-const path = require('node:path');
-
-const ROOT = path.join(__dirname, '..', '..');
 const TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -459,10 +517,15 @@ const TYPES = {
   '.webmanifest': 'application/manifest+json',
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
+  '.jpg': 'image/jpeg',
   '.ico': 'image/x-icon',
   '.txt': 'text/plain; charset=utf-8',
 };
-const PRIVATE = new Set(['package.json', 'package-lock.json']);
+
+function notFound(res, name) {
+  res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+  res.end('Not found: ' + name);
+}
 
 function serveStatic(req, res) {
   if (req.method !== 'GET' && req.method !== 'HEAD') {
@@ -471,32 +534,32 @@ function serveStatic(req, res) {
   }
   let name;
   try {
-    name = decodeURIComponent(new URL(req.url, 'http://localhost').pathname).replace(/^\/+/, '') || 'index.html';
+    name = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
   } catch {
     res.writeHead(400);
     return res.end('Bad request');
   }
-  // Anything that isn't a top-level app file gets the app itself.
-  if (/[/\\]/.test(name) || name.startsWith('.') || PRIVATE.has(name) || !TYPES[path.extname(name)]) name = 'index.html';
-  fs.readFile(path.join(ROOT, name), (error, data) => {
-    if (error) {
-      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-      return res.end('Not found');
-    }
-    res.writeHead(200, {
-      'Content-Type': TYPES[path.extname(name)],
-      'Cache-Control': name === 'index.html' || name === 'sw.js' ? 'no-cache' : 'public, max-age=3600',
-      'X-Content-Type-Options': 'nosniff',
+  const parts = name.split('/').filter(Boolean);
+  if (parts.some(part => part.startsWith('.')) || ['server', 'cli'].includes(parts[0])) return notFound(res, name);
+  let file = path.join(ROOT, ...parts);
+  fs.stat(file, (error, stat) => {
+    if (!error && stat.isDirectory()) file = path.join(file, 'index.html');
+    else if (error && !path.extname(name)) file = path.join(ROOT, 'index.html');
+    fs.readFile(file, (error, data) => {
+      if (error) return notFound(res, name);
+      res.writeHead(200, {
+        'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream',
+        'Cache-Control': /(index\.html|sw\.js)$/.test(file) ? 'no-cache' : 'public, max-age=3600',
+        'X-Content-Type-Options': 'nosniff',
+      });
+      res.end(req.method === 'HEAD' ? undefined : data);
     });
-    res.end(req.method === 'HEAD' ? undefined : data);
   });
 }
-
-module.exports = { serveStatic };
 </script>
 
-<script type="text/plain" id="t-api">
-// REST API for the app's "Server API" collections:
+<script type="text/plain" id="t-node-api">
+// --- Data API, for the app's "Server API" data sources:
 //   GET    /api                     names of the collections
 //   GET    /api/<collection>        list the rows
 //   POST   /api/<collection>        add a row
@@ -504,12 +567,8 @@ module.exports = { serveStatic };
 //   PATCH  /api/<collection>/<id>   change some fields (PUT replaces them all)
 //   DELETE /api/<collection>/<id>   delete a row
 // Bodies are JSON. Unknown fields are dropped and values are converted to the
-// field's type, so the store only ever sees clean rows.
-
-const crypto = require('node:crypto');
-const store = require('./store');
-const hooks = require('./hooks');
-const { TABLES } = require('./schema');
+// field's type, so the store only ever sees clean rows. Errors answer with
+// { error } (and { trace } when DEBUG=1), and the full stack is logged here.
 
 const EMPTY = { text: '', longtext: '', email: '', url: '', date: '', number: 0, boolean: false };
 
@@ -562,8 +621,8 @@ function readJson(req) {
 
 async function route(req, table, id, extra) {
   if (!table) return [200, Object.keys(TABLES)];
-  if (!Object.hasOwn(TABLES, table) || extra !== undefined) return [404, { error: 'Not found' }];
-  const hook = hooks[table] || {};
+  if (!Object.hasOwn(TABLES, table) || extra !== undefined) return [404, { error: 'No collection called ' + table }];
+  const rule = RULES[table] || {};
 
   if (id === undefined) {
     if (req.method === 'GET') return [200, await store.list(table)];
@@ -571,7 +630,7 @@ async function route(req, table, id, extra) {
       const body = await readJson(req);
       const ownId = typeof body.id === 'string' && /^[\w-]{1,64}$/.test(body.id) ? body.id : crypto.randomUUID();
       let row = { id: ownId, ...clean(table, body) };
-      if (hook.beforeCreate) row = await hook.beforeCreate(row, req);
+      if (rule.beforeCreate) row = await rule.beforeCreate(row, req);
       if (await store.get(table, row.id)) throw httpError(409, 'That id is taken');
       return [201, await store.insert(table, row)];
     }
@@ -579,298 +638,646 @@ async function route(req, table, id, extra) {
   }
 
   const existing = await store.get(table, id);
-  if (!existing) return [404, { error: 'Not found' }];
+  if (!existing) return [404, { error: `No ${table} row with id ${id}` }];
   if (req.method === 'GET') return [200, existing];
   if (req.method === 'PATCH' || req.method === 'PUT') {
     let patch = clean(table, await readJson(req), req.method === 'PATCH');
-    if (hook.beforeUpdate) patch = await hook.beforeUpdate(existing, patch, req);
+    if (rule.beforeUpdate) patch = await rule.beforeUpdate(existing, patch, req);
     return [200, await store.update(table, id, patch)];
   }
   if (req.method === 'DELETE') {
-    if (hook.beforeDelete) await hook.beforeDelete(existing, req);
+    if (rule.beforeDelete) await rule.beforeDelete(existing, req);
     await store.remove(table, id);
     return [204];
   }
   return [405, { error: 'Method not allowed' }];
 }
 
-// Answers requests under `base` and returns true, or returns false for other paths.
-async function handleApi(req, res, base = '/api') {
+// Answers requests under /api and returns true, or returns false for other paths.
+async function handleApi(req, res) {
   const { pathname } = new URL(req.url, 'http://localhost');
-  if (pathname !== base && !pathname.startsWith(base + '/')) return false;
+  if (pathname !== '/api' && !pathname.startsWith('/api/')) return false;
+  res.setHeader('Access-Control-Allow-Origin', CORS_ORIGIN);
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204);
+    res.end();
+    return true;
+  }
   let status, body;
   try {
-    const [table, id, extra] = pathname.slice(base.length + 1).split('/').map(decodeURIComponent);
+    const [table, id, extra] = pathname.slice(5).split('/').map(decodeURIComponent);
     [status, body] = await route(req, table || undefined, id, extra);
   } catch (error) {
-    if (!error.status) console.error(error);
-    [status, body] = [error.status || 500, { error: error.status ? error.message : 'Server error' }];
+    if (error.status) [status, body] = [error.status, { error: error.message }];
+    else {
+      console.error(`${req.method} ${pathname} failed:`, error);
+      [status, body] = [500, { error: 'Server error: ' + error.message, trace: DEBUG ? error.stack : undefined }];
+    }
   }
   res.writeHead(status, status === 204 ? {} : { 'Content-Type': 'application/json; charset=utf-8' });
   res.end(status === 204 ? undefined : JSON.stringify(body));
   return true;
 }
-
-module.exports = { handleApi };
 </script>
 
 <script type="text/plain" id="t-store-json">
-// Storage: one JSON file (server/data/db.json). Good for prototypes and small
-// apps. Pick SQLite or PostgreSQL in the engine's Export dialog when it grows;
-// the API code doesn't change, only this file.
-
-const fs = require('node:fs');
-const path = require('node:path');
-const { TABLES, SEED } = require('./schema');
-
-const FILE = process.env.DB_FILE || path.join(__dirname, '..', 'data', 'db.json');
-
-let db;
-try {
-  db = JSON.parse(fs.readFileSync(FILE, 'utf8'));
-} catch {
-  db = structuredClone(SEED);
-}
-for (const table in TABLES) db[table] ||= [];
-
-function persist() {
-  fs.mkdirSync(path.dirname(FILE), { recursive: true });
-  fs.writeFileSync(FILE + '.tmp', JSON.stringify(db, null, 2));
-  fs.renameSync(FILE + '.tmp', FILE);
-}
-
-module.exports = {
-  async list(table) {
-    return db[table];
-  },
-  async get(table, id) {
-    return db[table].find(row => row.id === id);
-  },
-  async insert(table, row) {
-    db[table].push(row);
-    persist();
-    return row;
-  },
-  async update(table, id, patch) {
-    const row = db[table].find(r => r.id === id);
-    Object.assign(row, patch);
-    persist();
-    return row;
-  },
-  async remove(table, id) {
-    db[table] = db[table].filter(row => row.id !== id);
-    persist();
-  },
-};
+// --- Storage: one JSON file, server/data/db.json (DB_FILE changes it). Fine for
+// prototypes and small apps; nothing to install.
+const store = (() => {
+  const fs = require('node:fs'), path = require('node:path');
+  const FILE = process.env.DB_FILE || path.join(@@DATA@@, 'db.json');
+  let db;
+  const persist = () => {
+    fs.mkdirSync(path.dirname(FILE), { recursive: true });
+    fs.writeFileSync(FILE + '.tmp', JSON.stringify(db, null, 2));
+    fs.renameSync(FILE + '.tmp', FILE);
+  };
+  return {
+    label: FILE,
+    async init() {
+      try {
+        db = JSON.parse(fs.readFileSync(FILE, 'utf8'));
+      } catch (error) {
+        if (error.code !== 'ENOENT') throw new Error(`Couldn't read ${FILE}: ${error.message}`);
+        db = {};
+      }
+      for (const table in TABLES) db[table] ||= structuredClone(SEED[table]);
+    },
+    async list(table) {
+      return db[table].map(row => ({ ...row }));
+    },
+    async get(table, id) {
+      return db[table].find(row => row.id === id);
+    },
+    async insert(table, row) {
+      db[table].push({ ...row });
+      persist();
+      return row;
+    },
+    async update(table, id, patch) {
+      const row = db[table].find(r => r.id === id);
+      Object.assign(row, patch);
+      persist();
+      return { ...row };
+    },
+    async remove(table, id) {
+      db[table] = db[table].filter(row => row.id !== id);
+      persist();
+    },
+    async close() {},
+  };
+})();
 </script>
 
 <script type="text/plain" id="t-store-sqlite">
-// Storage: SQLite, through Node's built-in node:sqlite module (Node 22.13 or
+// --- Storage: SQLite, through Node's built-in node:sqlite module (Node 22.13 or
 // later; 22.5 to 22.12 need --experimental-sqlite). Nothing to install. The
-// database is server/data/app.db, made from db/schema.sql on first run.
-
-const fs = require('node:fs');
-const path = require('node:path');
-const { DatabaseSync } = require('node:sqlite');
-const { TABLES, SEED } = require('./schema');
-
-const FILE = process.env.DB_FILE || path.join(__dirname, '..', 'data', 'app.db');
-fs.mkdirSync(path.dirname(FILE), { recursive: true });
-const fresh = !fs.existsSync(FILE);
-const db = new DatabaseSync(FILE);
-db.exec(fs.readFileSync(path.join(__dirname, '..', 'db', 'schema.sql'), 'utf8'));
-
-// SQLite has no boolean type: they are stored as 0 and 1.
-function encode(row) {
-  const out = {};
-  for (const [key, value] of Object.entries(row)) out[key] = typeof value === 'boolean' ? Number(value) : value;
-  return out;
-}
-function decode(table, row) {
-  if (!row) return row;
-  const out = { ...row };
-  for (const [field, type] of Object.entries(TABLES[table])) if (type === 'boolean') out[field] = !!out[field];
-  return out;
-}
-const quote = name => '"' + name + '"';
-
-const store = {
-  async list(table) {
-    return db.prepare(`SELECT * FROM ${quote(table)} ORDER BY created_at, rowid`).all().map(row => decode(table, row));
-  },
-  async get(table, id) {
-    return decode(table, db.prepare(`SELECT * FROM ${quote(table)} WHERE id = ?`).get(id));
-  },
-  async insert(table, row) {
-    const data = encode(row), keys = Object.keys(data);
-    db.prepare(`INSERT INTO ${quote(table)} (${keys.map(quote).join(', ')}) VALUES (${keys.map(() => '?').join(', ')})`)
-      .run(...keys.map(key => data[key]));
-    return store.get(table, row.id);
-  },
-  async update(table, id, patch) {
-    const data = encode(patch), keys = Object.keys(data);
-    if (keys.length) {
-      db.prepare(`UPDATE ${quote(table)} SET ${keys.map(key => quote(key) + ' = ?').join(', ')} WHERE id = ?`)
-        .run(...keys.map(key => data[key]), id);
-    }
-    return store.get(table, id);
-  },
-  async remove(table, id) {
-    db.prepare(`DELETE FROM ${quote(table)} WHERE id = ?`).run(id);
-  },
-};
-
-if (fresh) for (const [table, rows] of Object.entries(SEED)) for (const row of rows) store.insert(table, row);
-
-module.exports = store;
+// database is server/data/app.db (DB_FILE changes it). Tables are made on the
+// first run, and fields added in the engine later become new columns.
+const store = (() => {
+  const fs = require('node:fs'), path = require('node:path');
+  const { DatabaseSync } = require('node:sqlite');
+  const FILE = process.env.DB_FILE || path.join(@@DATA@@, 'app.db');
+  const quote = name => '"' + name + '"';
+  let db;
+  // SQLite has no boolean type: they are stored as 0 and 1.
+  const encode = row => Object.fromEntries(Object.entries(row).map(([k, v]) => [k, typeof v === 'boolean' ? Number(v) : v]));
+  const decode = (table, row) => {
+    if (!row) return row;
+    const out = { ...row };
+    for (const [field, type] of Object.entries(TABLES[table])) if (type === 'boolean') out[field] = !!out[field];
+    return out;
+  };
+  const store = {
+    label: FILE,
+    async init() {
+      fs.mkdirSync(path.dirname(FILE), { recursive: true });
+      db = new DatabaseSync(FILE);
+      for (const [table, { create, columns }] of Object.entries(SCHEMA)) {
+        const fresh = !db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?").get(table);
+        db.exec(create);
+        const have = new Set(db.prepare(`PRAGMA table_info(${quote(table)})`).all().map(c => c.name));
+        for (const [field, type] of Object.entries(columns)) {
+          if (!have.has(field)) db.exec(`ALTER TABLE ${quote(table)} ADD COLUMN ${quote(field)} ${type}`);
+        }
+        if (fresh) for (const row of SEED[table]) await store.insert(table, row);
+      }
+    },
+    async list(table) {
+      return db.prepare(`SELECT * FROM ${quote(table)} ORDER BY created_at, rowid`).all().map(row => decode(table, row));
+    },
+    async get(table, id) {
+      return decode(table, db.prepare(`SELECT * FROM ${quote(table)} WHERE id = ?`).get(id));
+    },
+    async insert(table, row) {
+      const data = encode(row), keys = Object.keys(data);
+      db.prepare(`INSERT INTO ${quote(table)} (${keys.map(quote).join(', ')}) VALUES (${keys.map(() => '?').join(', ')})`)
+        .run(...keys.map(key => data[key]));
+      return store.get(table, row.id);
+    },
+    async update(table, id, patch) {
+      const data = encode(patch), keys = Object.keys(data);
+      if (keys.length) {
+        db.prepare(`UPDATE ${quote(table)} SET ${keys.map(key => quote(key) + ' = ?').join(', ')} WHERE id = ?`)
+          .run(...keys.map(key => data[key]), id);
+      }
+      return store.get(table, id);
+    },
+    async remove(table, id) {
+      db.prepare(`DELETE FROM ${quote(table)} WHERE id = ?`).run(id);
+    },
+    async close() {
+      if (db) db.close();
+    },
+  };
+  return store;
+})();
 </script>
 
 <script type="text/plain" id="t-store-pg">
-// Storage: PostgreSQL, through the pg package (run `npm install` in server/).
-// Connects to DATABASE_URL. docker-compose.yml starts a database and loads
-// db/schema.sql and db/seed.sql into it the first time.
-
-const { Pool } = require('pg');
-
-const pool = new Pool({ connectionString: process.env.DATABASE_URL || 'postgres://app:app@localhost:5432/app' });
-const quote = name => '"' + name + '"';
-
-const store = {
-  async list(table) {
-    return (await pool.query(`SELECT * FROM ${quote(table)} ORDER BY created_at`)).rows;
-  },
-  async get(table, id) {
-    return (await pool.query(`SELECT * FROM ${quote(table)} WHERE id = $1`, [id])).rows[0];
-  },
-  async insert(table, row) {
-    const keys = Object.keys(row);
-    const sql = `INSERT INTO ${quote(table)} (${keys.map(quote).join(', ')}) VALUES (${keys.map((_, i) => '$' + (i + 1)).join(', ')}) RETURNING *`;
-    return (await pool.query(sql, keys.map(key => row[key]))).rows[0];
-  },
-  async update(table, id, patch) {
-    const keys = Object.keys(patch);
-    if (!keys.length) return store.get(table, id);
-    const sql = `UPDATE ${quote(table)} SET ${keys.map((key, i) => quote(key) + ' = $' + (i + 1)).join(', ')} WHERE id = $${keys.length + 1} RETURNING *`;
-    return (await pool.query(sql, [...keys.map(key => patch[key]), id])).rows[0];
-  },
-  async remove(table, id) {
-    await pool.query(`DELETE FROM ${quote(table)} WHERE id = $1`, [id]);
-  },
-};
-
-module.exports = store;
+// --- Storage: PostgreSQL, through the pg package (run `npm install` in server/).
+// Connects to DATABASE_URL if it is set, otherwise to the settings below
+// (DB_HOST, DB_PORT, DB_NAME and DB_USER change them; the password comes from
+// @@PWENV@@). Tables are made on the first run, and fields added in the
+// engine later become new columns.
+const store = (() => {
+  const { Pool } = require('pg');
+  const settings = process.env.DATABASE_URL ? { connectionString: process.env.DATABASE_URL } : @@CONFIG@@;
+  const pool = new Pool(settings);
+  const quote = name => '"' + name + '"';
+  const store = {
+    label: process.env.DATABASE_URL ? 'DATABASE_URL' : `postgres://${settings.user}@${settings.host}:${settings.port}/${settings.database}`,
+    async init() {
+      for (const [table, { create, columns }] of Object.entries(SCHEMA)) {
+        const fresh = !(await pool.query('SELECT to_regclass($1) AS t', [quote(table)])).rows[0].t;
+        await pool.query(create);
+        const have = new Set((await pool.query(
+          'SELECT column_name FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = $1', [table])).rows.map(r => r.column_name));
+        for (const [field, type] of Object.entries(columns)) {
+          if (!have.has(field)) await pool.query(`ALTER TABLE ${quote(table)} ADD COLUMN ${quote(field)} ${type}`);
+        }
+        if (fresh) for (const row of SEED[table]) await store.insert(table, row);
+      }
+    },
+    async list(table) {
+      return (await pool.query(`SELECT * FROM ${quote(table)} ORDER BY created_at`)).rows;
+    },
+    async get(table, id) {
+      return (await pool.query(`SELECT * FROM ${quote(table)} WHERE id = $1`, [id])).rows[0];
+    },
+    async insert(table, row) {
+      const keys = Object.keys(row);
+      const sql = `INSERT INTO ${quote(table)} (${keys.map(quote).join(', ')}) VALUES (${keys.map((_, i) => '$' + (i + 1)).join(', ')}) RETURNING *`;
+      return (await pool.query(sql, keys.map(key => row[key]))).rows[0];
+    },
+    async update(table, id, patch) {
+      const keys = Object.keys(patch);
+      if (!keys.length) return store.get(table, id);
+      const sql = `UPDATE ${quote(table)} SET ${keys.map((key, i) => quote(key) + ' = $' + (i + 1)).join(', ')} WHERE id = $${keys.length + 1} RETURNING *`;
+      return (await pool.query(sql, [...keys.map(key => patch[key]), id])).rows[0];
+    },
+    async remove(table, id) {
+      await pool.query(`DELETE FROM ${quote(table)} WHERE id = $1`, [id]);
+    },
+    async close() {
+      await pool.end();
+    },
+  };
+  return store;
+})();
 </script>
 
-<script type="text/plain" id="t-web">
-// Web server: serves the app and nothing else. No packages needed.
-//   node server/web.js        then open http://localhost:8080/
-// Set PORT to use another port.
-
-const http = require('node:http');
-const { serveStatic } = require('./lib/static');
-
-const PORT = Number(process.env.PORT) || 8080;
-
-http.createServer(serveStatic).listen(PORT, () => {
-  console.log(`@@NAME@@ is at http://localhost:${PORT}/`);
-});
-</script>
-
-<script type="text/plain" id="t-apiserver">
-// API server: the REST API on its own, for when the app is hosted elsewhere
-// (GitHub Pages, say). It allows calls from CORS_ORIGIN (default: anywhere).
-//   node server/api.js        then the API is at http://localhost:3000/api
-// In the engine, set App › API address to this server's /api address.
-
-const http = require('node:http');
-const { handleApi } = require('./lib/api');
-
-const PORT = Number(process.env.PORT) || 3000;
-const ORIGIN = process.env.CORS_ORIGIN || '*';
-
-http.createServer(async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', ORIGIN);
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') {
-    res.writeHead(204);
-    return res.end();
+<script type="text/plain" id="t-store-mssql">
+// --- Storage: Microsoft SQL Server, through the mssql package (run `npm install`
+// in server/). @@AUTH@@
+// Tables are made on the first run, and fields added in the engine later become
+// new columns.
+const store = (() => {
+  const sql = require(@@DRIVER@@);
+  const config = @@CONFIG@@;
+  const SCHEMA_NAME = @@SCHEMA@@;
+  const name = table => '[' + SCHEMA_NAME + '].[' + table + ']';
+  const quote = field => '[' + field + ']';
+  const TYPE = { number: sql.Float, boolean: sql.Bit };
+  const ID = sql.NVarChar(64);
+  let pool;
+  async function run(text, values = [], types = []) {
+    const request = pool.request();
+    values.forEach((value, i) => request.input('p' + i, types[i] || sql.NVarChar(sql.MAX), value));
+    return (await request.query(text)).recordset || [];
   }
-  if (!(await handleApi(req, res))) {
-    res.writeHead(404, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ error: 'Not found' }));
-  }
-}).listen(PORT, () => {
-  console.log(`API for @@NAME@@ is at http://localhost:${PORT}/api`);
-});
-</script>
-
-<script type="text/plain" id="t-app">
-// Application server: the app and its API from one address, with the
-// server-side logic in lib/hooks.js. This is the one to deploy.
-//   node server/app.js        then open http://localhost:8080/
-
-const http = require('node:http');
-const { serveStatic } = require('./lib/static');
-const { handleApi } = require('./lib/api');
-
-const PORT = Number(process.env.PORT) || 8080;
-
-http.createServer(async (req, res) => {
-  if (await handleApi(req, res)) return;
-  serveStatic(req, res);
-}).listen(PORT, () => {
-  console.log(`@@NAME@@ is at http://localhost:${PORT}/ (API at /api)`);
-});
+  const typesOf = (table, keys) => keys.map(key => (key === 'id' ? ID : TYPE[TABLES[table][key]]));
+  const store = {
+    label: @@LABEL@@,
+    async init() {
+      pool = await new sql.ConnectionPool(config).connect();
+      for (const [table, { create, columns }] of Object.entries(SCHEMA)) {
+        const fresh = !(await run("SELECT OBJECT_ID(@p0, 'U') AS id", [name(table)]))[0].id;
+        if (fresh) await run(create);
+        const have = new Set((await run('SELECT name FROM sys.columns WHERE object_id = OBJECT_ID(@p0)', [name(table)])).map(c => c.name));
+        for (const [field, type] of Object.entries(columns)) {
+          if (!have.has(field)) await run(`ALTER TABLE ${name(table)} ADD ${quote(field)} ${type}`);
+        }
+        if (fresh) for (const row of SEED[table]) await store.insert(table, row);
+      }
+    },
+    async list(table) {
+      return run(`SELECT * FROM ${name(table)} ORDER BY [created_at]`);
+    },
+    async get(table, id) {
+      return (await run(`SELECT * FROM ${name(table)} WHERE [id] = @p0`, [id], [ID]))[0];
+    },
+    async insert(table, row) {
+      const keys = Object.keys(row);
+      const text = `INSERT INTO ${name(table)} (${keys.map(quote).join(', ')}) OUTPUT INSERTED.* VALUES (${keys.map((_, i) => '@p' + i).join(', ')})`;
+      return (await run(text, keys.map(key => row[key]), typesOf(table, keys)))[0];
+    },
+    async update(table, id, patch) {
+      const keys = Object.keys(patch);
+      if (!keys.length) return store.get(table, id);
+      const text = `UPDATE ${name(table)} SET ${keys.map((key, i) => quote(key) + ' = @p' + i).join(', ')} OUTPUT INSERTED.* WHERE [id] = @p${keys.length}`;
+      return (await run(text, [...keys.map(key => patch[key]), id], [...typesOf(table, keys), ID]))[0];
+    },
+    async remove(table, id) {
+      await run(`DELETE FROM ${name(table)} WHERE [id] = @p0`, [id], [ID]);
+    },
+    async close() {
+      if (pool) await pool.close();
+    },
+  };
+  return store;
+})();
 </script>
 
 <script type="text/plain" id="t-py">
-# Web server in Python, standard library only:
-#   python3 server/web.py      then open http://localhost:8080/
-# Serves the app's top-level files; everything else gets index.html.
+#!/usr/bin/env python3
+# Server for @@NAME@@, in Python: serves the app@@WHAT@@ from one process.
+#   python3 server/server.py           then open http://localhost:8080/
+@@USAGE@@# Settings come from the environment: PORT (8080)@@ENV@@.
 
 import http.server
+import json
 import os
-import posixpath
+import re
+import sys
+import threading
+import traceback
+import urllib.parse
+import uuid
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+HERE = os.path.dirname(os.path.abspath(__file__))
 PORT = int(os.environ.get("PORT", "8080"))
+API_ONLY = os.environ.get("API_ONLY") == "1"
+CORS_ORIGIN = os.environ.get("CORS_ORIGIN", "*")
+DEBUG = os.environ.get("DEBUG") == "1"
+
+TYPES = {
+    ".html": "text/html; charset=utf-8",
+    ".js": "text/javascript; charset=utf-8",
+    ".css": "text/css; charset=utf-8",
+    ".json": "application/json; charset=utf-8",
+    ".webmanifest": "application/manifest+json",
+    ".svg": "image/svg+xml",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".ico": "image/x-icon",
+    ".txt": "text/plain; charset=utf-8",
+}
 
 
-class Handler(http.server.SimpleHTTPRequestHandler):
-    extensions_map = {
-        **http.server.SimpleHTTPRequestHandler.extensions_map,
-        ".js": "text/javascript",
-        ".json": "application/json",
-        ".webmanifest": "application/manifest+json",
-        ".svg": "image/svg+xml",
-    }
+class HttpError(Exception):
+    def __init__(self, status, message):
+        super().__init__(message)
+        self.status = status
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=ROOT, **kwargs)
+@@DATA@@
 
-    def translate_path(self, path):
-        name = posixpath.normpath(path.split("?", 1)[0].split("#", 1)[0]).lstrip("/")
-        if not name or "/" in name or name.startswith(".") or name == "index.html":
-            name = "index.html"
-        elif not os.path.isfile(os.path.join(ROOT, name)):
-            name = "index.html"
-        return os.path.join(ROOT, name)
+class Handler(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):
+        path = urllib.parse.urlsplit(self.path).path
+        try:
+            if API and (path == "/api" or path.startswith("/api/")):
+                return self.api(path)
+            if API_ONLY:
+                return self.send_text(404, "Not found: " + path)
+            self.static(urllib.parse.unquote(path))
+        except Exception:
+            traceback.print_exc()
+            self.send_text(500, "Server error")
 
-    def end_headers(self):
-        if self.path.split("?")[0] in ("/", "/index.html", "/sw.js"):
-            self.send_header("Cache-Control", "no-cache")
-        super().end_headers()
+    do_HEAD = do_POST = do_PUT = do_PATCH = do_DELETE = do_OPTIONS = do_GET
+
+    # The app's own files, from the folder above server/. The server/ and cli/
+    # folders and dot-files stay private. An address with no file extension (a
+    # page of the app) gets index.html; a missing file gets a plain 404 that
+    # names it, so a wrong address is easy to spot.
+    def static(self, path):
+        if self.command not in ("GET", "HEAD"):
+            return self.send_text(405, "Method not allowed")
+        parts = [part for part in path.split("/") if part]
+        if any(part.startswith(".") for part in parts) or (parts and parts[0] in ("server", "cli")):
+            return self.send_text(404, "Not found: " + path)
+        file = os.path.join(ROOT, *parts)
+        if os.path.isdir(file):
+            file = os.path.join(file, "index.html")
+        elif not os.path.exists(file) and not os.path.splitext(path)[1]:
+            file = os.path.join(ROOT, "index.html")
+        if not os.path.isfile(file):
+            return self.send_text(404, "Not found: " + path)
+        with open(file, "rb") as f:
+            data = f.read()
+        self.send_response(200)
+        self.send_header("Content-Type", TYPES.get(os.path.splitext(file)[1], "application/octet-stream"))
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "no-cache" if os.path.basename(file) in ("index.html", "sw.js") else "public, max-age=3600")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.end_headers()
+        if self.command != "HEAD":
+            self.wfile.write(data)
+
+    def api(self, path):
+        if self.command == "OPTIONS":
+            return self.send_json(204, None)
+        parts = [urllib.parse.unquote(part) for part in path[5:].split("/")] if len(path) > 5 else []
+        try:
+            status, body = route(self.command, parts, self.read_json)
+        except HttpError as error:
+            status, body = error.status, {"error": str(error)}
+        except Exception as error:
+            # The full stack goes to this terminal; DEBUG=1 also sends it to the app.
+            print("%s %s failed:" % (self.command, path), file=sys.stderr)
+            traceback.print_exc()
+            status, body = 500, {"error": "Server error: %s" % error}
+            if DEBUG:
+                body["trace"] = traceback.format_exc()
+        self.send_json(status, body)
+
+    def read_json(self):
+        size = int(self.headers.get("Content-Length") or 0)
+        if size > 1_000_000:
+            raise HttpError(413, "Body too large")
+        try:
+            body = json.loads(self.rfile.read(size) or b"{}")
+        except ValueError:
+            raise HttpError(400, "Expected a JSON object")
+        if not isinstance(body, dict):
+            raise HttpError(400, "Expected a JSON object")
+        return body
+
+    def send_json(self, status, body):
+        data = b"" if status == 204 else json.dumps(body, default=str).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Access-Control-Allow-Origin", CORS_ORIGIN)
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        if status != 204:
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def send_text(self, status, text):
+        data = text.encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        if self.command != "HEAD":
+            self.wfile.write(data)
 
 
 if __name__ == "__main__":
-    print(f"@@NAME@@ is at http://localhost:{PORT}/")
+    if API:
+        try:
+            STORE.init()
+        except Exception as error:
+            traceback.print_exc()
+            sys.exit("Couldn't open the database (%s): %s" % (STORE.label, error))
+    print("@@NAME@@ is at http://localhost:%d/%s" % (PORT, " (API at /api; data: %s)" % STORE.label if API else ""))
     http.server.ThreadingHTTPServer(("", PORT), Handler).serve_forever()
 </script>
 
+<script type="text/plain" id="t-py-api">
+# --- Data API, for the app's "Server API" data sources:
+#   GET    /api                     names of the collections
+#   GET    /api/<collection>        list the rows
+#   POST   /api/<collection>        add a row
+#   GET    /api/<collection>/<id>   one row
+#   PATCH  /api/<collection>/<id>   change some fields (PUT replaces them all)
+#   DELETE /api/<collection>/<id>   delete a row
+# Unknown fields are dropped and values are converted to the field's type.
+
+EMPTY = {"text": "", "longtext": "", "email": "", "url": "", "date": "", "number": 0, "boolean": False}
+
+
+def convert(kind, value):
+    if kind == "number":
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            raise HttpError(400, "Expected a number")
+        return int(number) if number.is_integer() else number
+    if kind == "boolean":
+        return value in (True, "true", 1, "1")
+    return "" if value is None else str(value)
+
+
+def clean(table, body, partial=False):
+    row = {}
+    for field, kind in TABLES[table].items():
+        if field in body:
+            row[field] = convert(kind, body[field])
+        elif not partial:
+            row[field] = EMPTY[kind]
+    return row
+
+
+def route(method, parts, read_body):
+    table = parts[0] if parts and parts[0] else None
+    if not table:
+        return 200, list(TABLES)
+    if table not in TABLES or len(parts) > 2:
+        raise HttpError(404, "No collection called " + table)
+    rule = RULES.get(table, {})
+    if len(parts) == 1 or not parts[1]:
+        if method == "GET":
+            return 200, STORE.list(table)
+        if method == "POST":
+            body = read_body()
+            own = body.get("id")
+            row = {"id": own if isinstance(own, str) and re.fullmatch(r"[\w-]{1,64}", own) else str(uuid.uuid4())}
+            row.update(clean(table, body))
+            if "before_create" in rule:
+                row = rule["before_create"](row)
+            if STORE.get(table, row["id"]):
+                raise HttpError(409, "That id is taken")
+            return 201, STORE.insert(table, row)
+        raise HttpError(405, "Method not allowed")
+    existing = STORE.get(table, parts[1])
+    if not existing:
+        raise HttpError(404, "No %s row with id %s" % (table, parts[1]))
+    if method == "GET":
+        return 200, existing
+    if method in ("PATCH", "PUT"):
+        patch = clean(table, read_body(), partial=method == "PATCH")
+        if "before_update" in rule:
+            patch = rule["before_update"](existing, patch)
+        return 200, STORE.update(table, parts[1], patch)
+    if method == "DELETE":
+        if "before_delete" in rule:
+            rule["before_delete"](existing)
+        STORE.remove(table, parts[1])
+        return 204, None
+    raise HttpError(405, "Method not allowed")
+</script>
+
+<script type="text/plain" id="t-py-json">
+# --- Storage: one JSON file, server/data/db.json (DB_FILE changes it). Fine for
+# prototypes and small apps; nothing to install.
+class JsonStore:
+    def __init__(self):
+        self.file = os.environ.get("DB_FILE") or os.path.join(HERE, "data", "db.json")
+        self.label = self.file
+        self.lock = threading.Lock()
+        self.db = {}
+
+    def init(self):
+        try:
+            with open(self.file, encoding="utf-8") as f:
+                self.db = json.load(f)
+        except FileNotFoundError:
+            self.db = {}
+        for table in TABLES:
+            self.db.setdefault(table, json.loads(json.dumps(SEED[table])))
+
+    def save(self):
+        os.makedirs(os.path.dirname(self.file), exist_ok=True)
+        with open(self.file + ".tmp", "w", encoding="utf-8") as f:
+            json.dump(self.db, f, indent=2)
+        os.replace(self.file + ".tmp", self.file)
+
+    def list(self, table):
+        return self.db[table]
+
+    def get(self, table, id):
+        return next((row for row in self.db[table] if row["id"] == id), None)
+
+    def insert(self, table, row):
+        with self.lock:
+            self.db[table].append(row)
+            self.save()
+        return row
+
+    def update(self, table, id, patch):
+        with self.lock:
+            row = self.get(table, id)
+            row.update(patch)
+            self.save()
+        return row
+
+    def remove(self, table, id):
+        with self.lock:
+            self.db[table] = [row for row in self.db[table] if row["id"] != id]
+            self.save()
+
+
+STORE = JsonStore()
+</script>
+
+<script type="text/plain" id="t-py-sql">
+# --- Storage: @@DBNAME@@.
+# Tables are made on the first run, and fields added in the engine later
+# become new columns.
+@@CONNECT@@
+
+class SqlStore:
+    def __init__(self, dialect, connect, mark, label):
+        self.dialect, self.connect, self.mark, self.label = dialect, connect, mark, label
+
+    def q(self, name):
+        return "[%s]" % name if self.dialect == "mssql" else '"%s"' % name
+
+    def table(self, name):
+        return "[%s].[%s]" % (DB_SCHEMA, name) if self.dialect == "mssql" else self.q(name)
+
+    def run(self, sql, params=()):
+        conn = self.connect()
+        try:
+            cur = conn.cursor()
+            if params:
+                cur.execute(sql, tuple(params))
+            else:
+                cur.execute(sql)
+            rows = []
+            if cur.description:
+                names = [column[0] for column in cur.description]
+                rows = [dict(zip(names, values)) for values in cur.fetchall()]
+            conn.commit()
+            return rows
+        finally:
+            conn.close()
+
+    def decode(self, table, row):
+        if row:
+            for field, kind in TABLES[table].items():
+                if kind == "boolean" and field in row:
+                    row[field] = bool(row[field])
+        return row
+
+    def init(self):
+        m = self.mark
+        for table, spec in SCHEMA.items():
+            if self.dialect == "sqlite":
+                fresh = not self.run("SELECT name FROM sqlite_master WHERE type = 'table' AND name = " + m, [table])
+                have = lambda: {c["name"] for c in self.run("PRAGMA table_info(%s)" % self.q(table))}
+            elif self.dialect == "postgres":
+                fresh = not self.run("SELECT to_regclass(%s) AS t" % m, [self.q(table)])[0]["t"]
+                have = lambda: {c["column_name"] for c in self.run(
+                    "SELECT column_name FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = " + m, [table])}
+            else:
+                fresh = not self.run("SELECT OBJECT_ID(%s, 'U') AS id" % m, [self.table(table)])[0]["id"]
+                have = lambda: {c["name"] for c in self.run("SELECT name FROM sys.columns WHERE object_id = OBJECT_ID(%s)" % m, [self.table(table)])}
+            if fresh:
+                self.run(spec["create"])
+            existing = have()
+            for field, kind in spec["columns"].items():
+                if field not in existing:
+                    self.run("ALTER TABLE %s ADD %s%s %s" % (self.table(table), "" if self.dialect == "mssql" else "COLUMN ", self.q(field), kind))
+            if fresh:
+                for row in SEED[table]:
+                    self.insert(table, row)
+
+    def list(self, table):
+        return [self.decode(table, row) for row in self.run("SELECT * FROM %s ORDER BY %s" % (self.table(table), self.q("created_at")))]
+
+    def get(self, table, id):
+        rows = self.run("SELECT * FROM %s WHERE %s = %s" % (self.table(table), self.q("id"), self.mark), [id])
+        return self.decode(table, rows[0]) if rows else None
+
+    def insert(self, table, row):
+        keys = list(row)
+        self.run("INSERT INTO %s (%s) VALUES (%s)" % (self.table(table), ", ".join(map(self.q, keys)), ", ".join([self.mark] * len(keys))), [row[k] for k in keys])
+        return self.get(table, row["id"])
+
+    def update(self, table, id, patch):
+        if patch:
+            sets = ", ".join("%s = %s" % (self.q(k), self.mark) for k in patch)
+            self.run("UPDATE %s SET %s WHERE %s = %s" % (self.table(table), sets, self.q("id"), self.mark), list(patch.values()) + [id])
+        return self.get(table, id)
+
+    def remove(self, table, id):
+        self.run("DELETE FROM %s WHERE %s = %s" % (self.table(table), self.q("id"), self.mark), [id])
+
+
+STORE = SqlStore(@@STOREARGS@@)
+</script>
+
 <script type="text/plain" id="t-nginx">
-# nginx site for @@NAME@@. Copy the app's top-level files to /srv/@@SLUG@@
-# (index.html, sw.js, manifest.json, icons) and include this in nginx.conf.
+# nginx site for @@NAME@@. Copy the app's files to /srv/@@SLUG@@ (index.html
+# and the files next to it) and include this in nginx.conf.
 
 server {
     listen 80;
@@ -878,10 +1285,13 @@ server {
     root /srv/@@SLUG@@;
     index index.html;
 
-    types { application/manifest+json webmanifest; }
-
+    # Pages of the app get index.html; a missing file is a plain 404.
     location / {
-        try_files $uri /index.html;
+        try_files $uri $uri/ /index.html;
+    }
+
+    location ~ \.\w+$ {
+        try_files $uri =404;
     }
 
     location = /sw.js {
@@ -938,7 +1348,8 @@ const RESERVED = new Set(('S h html render morph view route go nav toast fail lo
   'break case catch class const continue debugger default delete do else export extends false finally for function ' +
   'if import in instanceof new null return super switch this throw true try typeof var void while with yield let ' +
   'static await async of undefined NaN Infinity window document location console Math JSON Date Number String ' +
-  'Boolean Array Object Promise Error Map Set fetch localStorage navigator self parent require module process').split(' '));
+  'Boolean Array Object Promise Error Map Set fetch localStorage navigator self parent require module process ' +
+  'GAMES input canvasGame getJson store ready TABLES SEED SCHEMA').split(' '));
 const IDENT = /^[A-Za-z_$][\w$]*$/;
 
 // =============================================================================
@@ -953,9 +1364,10 @@ const IDENT = /^[A-Za-z_$][\w$]*$/;
 const TYPES = {
   stack: { g: 'Layout', l: 'Stack', i: '☰', box: true, d: {}, f: [], tip: 'Puts its children one under another.' },
   row: { g: 'Layout', l: 'Row', i: '⇹', box: true, d: { justify: 'start', align: 'center', wrap: true }, tip: 'Puts its children side by side.', f: [
-    { k: 'justify', t: 'sel', l: 'Spread', o: [['start', 'From the start'], ['center', 'Centered'], ['end', 'At the end'], ['between', 'Spaced out']] },
-    { k: 'align', t: 'sel', l: 'Line up', o: [['start', 'Tops'], ['center', 'Middles'], ['end', 'Bottoms'], ['stretch', 'Stretch']] },
     { k: 'wrap', t: 'check', l: 'Wrap onto more lines when narrow' }] },
+  grid: { g: 'Layout', l: 'Grid', i: '⊞', box: true, d: { cols: 2, min: '' }, tip: 'Puts its children in columns.', f: [
+    { k: 'cols', t: 'num', l: 'Columns' },
+    { k: 'min', t: 'text', l: '…or as many columns as fit, each at least (px)', ph: 'e.g. 160' }] },
   card: { g: 'Layout', l: 'Card', i: '▢', box: true, d: {}, f: [], tip: 'A framed group.' },
   heading: { g: 'Content', l: 'Heading', i: 'H', d: { text: 'Heading', level: 2 }, f: [
     { k: 'text', t: 'tpl', l: 'Text' },
@@ -972,6 +1384,16 @@ const TYPES = {
   spacer: { g: 'Content', l: 'Spacer', i: '↕', d: { size: 24 }, f: [{ k: 'size', t: 'num', l: 'Height (px)' }] },
   html: { g: 'Content', l: 'HTML', i: '</>', d: { html: '<p><em>Your</em> HTML here.</p>' }, tip: 'For developers: any HTML, with {{ }} expressions.', f: [
     { k: 'html', t: 'code', l: 'HTML' }] },
+  canvas: { g: 'Content', l: 'Canvas', i: '◼', d: {
+    ref: 'game', width: 320, height: 180, pixel: true, fit: true,
+    setup: '// Runs once. Keep what the game needs in `game`.\ngame.x = 20;',
+    frame: '// Runs every frame; dt is the seconds since the last one.\nif (input.keys.has(\'arrowright\')) game.x += 60 * dt;\nif (input.keys.has(\'arrowleft\')) game.x -= 60 * dt;\nctx.fillStyle = \'#111\';\nctx.fillRect(0, 0, canvas.width, canvas.height);\nctx.fillStyle = \'#4f7cff\';\nctx.fillRect(game.x, 80, 20, 20);',
+  }, tip: 'For games and drawings: your code draws on it about 60 times a second. It can read S, input.keys (keys held, lower case), input.pointers and input.pressed(key), and call render().', f: [
+    { k: 'ref', t: 'text', l: 'Name in code (GAMES.name)', ph: 'game' },
+    { k: 'width', t: 'num', l: 'Width in pixels (drawing size)' }, { k: 'height', t: 'num', l: 'Height in pixels' },
+    { k: 'fit', t: 'check', l: 'Scale to fit the width' }, { k: 'pixel', t: 'check', l: 'Crisp pixels when scaled' },
+    { k: 'setup', t: 'code', l: 'Setup: function (game, ctx, canvas)' },
+    { k: 'frame', t: 'code', l: 'Every frame: function (game, ctx, canvas, dt)' }] },
   button: { g: 'Input', l: 'Button', i: '⏺', d: { label: 'Button', variant: 'primary' }, ev: [['click', 'When clicked']], f: [
     { k: 'label', t: 'tpl', l: 'Label' },
     { k: 'variant', t: 'sel', l: 'Style', o: [['primary', 'Filled'], ['secondary', 'Outlined'], ['ghost', 'Plain'], ['danger', 'Danger']] }] },
@@ -988,11 +1410,12 @@ const TYPES = {
   slider: { g: 'Input', l: 'Slider', i: '⊸', d: { label: 'Amount', min: 0, max: 100, step: 1, bind: '' }, ev: [['change', 'When changed']], f: [
     { k: 'label', t: 'tpl', l: 'Label' }, { k: 'min', t: 'num', l: 'Lowest' }, { k: 'max', t: 'num', l: 'Highest' }, { k: 'step', t: 'num', l: 'Step' },
     { k: 'bind', t: 'bind', l: 'Keeps its value in' }] },
-  list: { g: 'Data', l: 'List', i: '≡', box: true, d: { source: '', filter: '', sort: '', layout: 'row', empty: 'Nothing here yet.' }, ev: [['itemclick', 'When an item is clicked']],
+  list: { g: 'Data', l: 'List', i: '≡', box: true, d: { source: '', filter: '', sort: '', layout: 'row', plain: false, empty: 'Nothing here yet.' }, ev: [['itemclick', 'When an item is clicked']],
     tip: 'What you put inside repeats for each item. Use {{item.field}} to show a field.', f: [
     { k: 'source', t: 'source', l: 'Shows items from' }, { k: 'filter', t: 'expr', l: 'Only items where', ph: '!item.done' },
     { k: 'sort', t: 'sort', l: 'Sort by field (start with - for reverse)', ph: '-created' },
     { k: 'layout', t: 'sel', l: 'Each item is a', o: [['row', 'Row'], ['stack', 'Stack'], ['grid', 'Card in a grid']] },
+    { k: 'plain', t: 'check', l: 'Plain items (no frame around each)' },
     { k: 'empty', t: 'tpl', l: 'When there are none, show' }] },
   table: { g: 'Data', l: 'Table', i: '▦', d: { source: '', columns: '', filter: '', del: true }, f: [
     { k: 'source', t: 'source', l: 'Shows items from' }, { k: 'columns', t: 'fields', l: 'Columns (blank shows every field)', ph: 'title, done' },
@@ -1053,8 +1476,9 @@ function tpl(s) {
   return out + tplEsc(s.slice(last)) + '`';
 }
 
+// Plain numbers are pixels: '8 12' -> '8px 12px'.
 function px(v) {
-  return /^-?\d+(\.\d+)?$/.test(String(v).trim()) ? v + 'px' : v;
+  return String(v).trim().split(/\s+/).map(t => (/^-?\d+(\.\d+)?$/.test(t) ? t + 'px' : t)).join(' ');
 }
 
 const STYLE_PROPS = [
@@ -1064,6 +1488,23 @@ const STYLE_PROPS = [
   ['size', 'font-size', 'Text size', true], ['weight', 'font-weight', 'Weight', false, 'sel', [['', 'Default'], ['400', 'Normal'], ['600', 'Semibold'], ['700', 'Bold']]],
   ['radius', 'border-radius', 'Corner radius', true], ['width', 'max-width', 'Max width', true], ['border', 'border', 'Border', false],
 ];
+
+// Set from the Layout tools rather than the Style list.
+const LAYOUT_KEYS = new Set(['padding', 'margin', 'gap', 'width']);
+
+// Anchor presets, as in Godot: where a pinned part sits inside its parent.
+// Two letters, across then down: s start, c center, e end, f fill.
+const PINS = {
+  tl: 'ss', t: 'cs', tr: 'es', top: 'fs',
+  l: 'sc', c: 'cc', r: 'ec', vcenter: 'fc',
+  bl: 'se', b: 'ce', br: 'ee', bottom: 'fe',
+  left: 'sf', hcenter: 'cf', right: 'ef', full: 'ff',
+};
+const PIN_NAMES = {
+  tl: 'Top left', t: 'Top center', tr: 'Top right', top: 'Top wide', l: 'Center left', c: 'Center', r: 'Center right', vcenter: 'Middle wide',
+  bl: 'Bottom left', b: 'Bottom center', br: 'Bottom right', bottom: 'Bottom wide', left: 'Left tall', hcenter: 'Center tall', right: 'Right tall', full: 'Full rect',
+};
+const FLEX = { start: 'flex-start', end: 'flex-end', center: 'center', between: 'space-between', stretch: 'stretch' };
 
 function contrastText(hex) {
   const m = /^#?([\da-f]{6})$/i.exec(hex || '');
@@ -1083,7 +1524,8 @@ function makeGen(P, mode, opts = {}) {
   const srcOf = name => P.sources.find(s => s.name === name);
   const pageById = id => P.pages.find(p => p.id === id);
   const multi = P.pages.length > 1;
-  const used = new Set(), helpers = new Set(), actions = [], views = [];
+  const used = new Set(), helpers = new Set(), actions = [], views = [], games = [];
+  const canvasName = n => (IDENT.test(n.props.ref || '') ? n.props.ref : n.id);
   const slug = slugify(P.app.name);
 
   // `const { a, b } = S;` for the state names a piece of code reads.
@@ -1143,9 +1585,13 @@ function makeGen(P, mode, opts = {}) {
     const steps = n.on?.[ev];
     if (!steps?.length) return null;
     const name = `on_${n.id}_${ev}`;
-    const body = steps.map(s => stepCode(s, ctx)).filter(Boolean).join('\n');
-    const label = `${TYPES[n.type].l}${n.name ? ' "' + n.name + '"' : ''}: ${(TYPES[n.type].ev.find(e => e[0] === ev) || [, ev])[1].toLowerCase()}`;
-    actions.push(`// ${label.replace(/\n/g, ' ')}\nasync function ${name}(event${ctx.src ? ', item, index' : ''}) {\n  try {\n${ind(body || '// (no steps yet)', 4)}\n  } catch (error) {\n    fail(error);\n  } finally {\n    render();\n  }\n}`);
+    // Each step is marked, so an error's stack trace leads back to it.
+    const body = steps.map((s, i) => {
+      const code = stepCode(s, ctx);
+      return code && `// step ${i + 1}: ${(STEPS[s.kind] || STEPS.set).l}\n${code}`;
+    }).filter(Boolean).join('\n');
+    const label = nodeLabel(n) + ': ' + (TYPES[n.type].ev.find(e => e[0] === ev) || [, ev])[1].toLowerCase();
+    actions.push(`// ${label}\nasync function ${name}(event${ctx.src ? ', item, index' : ''}) {\n  try {\n${ind(body || '// (no steps yet)', 4)}\n  } catch (error) {\n    fail(error, ${q(label)});\n  } finally {\n    render();\n  }\n}`);
     return name;
   }
   const callArgs = ctx => (ctx.src ? 'event, item, index' : 'event');
@@ -1175,14 +1621,50 @@ function makeGen(P, mode, opts = {}) {
     return `${head},\n${kids.map(k => ind(k, 2)).join(',\n')}\n)`;
   }
 
-  function styleOf(n) {
+  // dir is how the parent lays out its children: 'row' (side by side), 'col'
+  // (one under another) or 'grid'.
+  function styleOf(n, dir = 'col', wrap = false) {
     const s = n.style || {}, p = n.props, out = [];
     if (n.type === 'row') {
-      if (p.justify && p.justify !== 'start') out.push(`justify-content: ${p.justify === 'between' ? 'space-between' : p.justify === 'end' ? 'flex-end' : p.justify}`);
-      if (p.align && p.align !== 'center') out.push(`align-items: ${p.align === 'start' ? 'flex-start' : p.align === 'end' ? 'flex-end' : p.align}`);
+      if (p.justify && p.justify !== 'start') out.push(`justify-content: ${FLEX[p.justify]}`);
+      if (p.align && p.align !== 'center') out.push(`align-items: ${FLEX[p.align]}`);
       if (!p.wrap) out.push('flex-wrap: nowrap');
     }
+    if (n.type === 'stack' || n.type === 'card') {
+      if (p.justify && p.justify !== 'start') out.push(`justify-content: ${FLEX[p.justify]}`);
+      if (p.align && p.align !== 'stretch') out.push(`align-items: ${FLEX[p.align]}`);
+    }
+    if (n.type === 'grid') {
+      const min = Number(p.min);
+      out.push('grid-template-columns: ' + (min > 0 ? `repeat(auto-fill, minmax(min(${min}px, 100%), 1fr))` : `repeat(${Math.max(1, Math.round(Number(p.cols)) || 1)}, minmax(0, 1fr))`));
+    }
     if (n.type === 'spacer') out.push(`height: ${px(p.size || 0)}`);
+    // Pinned: placed by an anchor preset inside the parent, out of the flow.
+    const pin = s.pin && PINS[s.pin];
+    if (pin) {
+      used.add('pin');
+      const ox = Number(s.ox) || 0, oy = Number(s.oy) || 0, shift = [];
+      out.push('position: absolute', 'z-index: 1');
+      [[pin[0], ox, 'left', 'right', '-50%'], [pin[1], oy, 'top', 'bottom', '-50%']].forEach(([a, off, start, end], i) => {
+        if (a === 's') out.push(`${start}: ${off}px`);
+        else if (a === 'e') out.push(`${end}: ${-off}px`);
+        else if (a === 'c') out.push(`${start}: calc(50% + ${off}px)`);
+        else out.push(`${start}: 0`, `${end}: 0`);
+        shift[i] = a === 'c' ? '-50%' : '0';
+      });
+      if (shift.includes('-50%')) out.push(`transform: translate(${shift.join(', ')})`);
+    }
+    // Size. Fill takes the free space along a Row (or down a Stack that has a
+    // height), or the whole width across a Stack.
+    const across = dir === 'row';
+    // In a Row that wraps, Fill parts drop to their own line below 240px.
+    if (s.w === 'fill') out.push(...(pin ? ['width: 100%'] : across ? [wrap ? 'flex: 1 1 240px' : 'flex: 1 1 0', 'min-width: 0'] : dir === 'col' ? ['align-self: stretch'] : []));
+    else if (s.w) out.push(`width: ${px(s.w)}`, ...(across && !pin ? ['flex: none'] : []));
+    if (s.h === 'fill') {
+      out.push(...(pin ? ['height: 100%'] : across ? ['align-self: stretch'] : ['flex: 1 1 0', 'min-height: 0']));
+      if (!pin && !across) used.add('fillh');
+    } else if (s.h) out.push(`height: ${px(s.h)}`);
+    if (s.self && !pin) out.push(`align-self: ${FLEX[s.self]}`);
     for (const [k, prop, , isLen] of STYLE_PROPS) if (s[k] != null && String(s[k]).trim()) out.push(`${prop}: ${isLen ? px(String(s[k]).trim()) : String(s[k]).trim()}`);
     if (s.css?.trim()) out.push(s.css.trim().replace(/;\s*$/, ''));
     return out.join('; ');
@@ -1195,17 +1677,22 @@ function makeGen(P, mode, opts = {}) {
       const a = [];
       const c = [cls, p.cls].filter(Boolean).join(' ');
       if (c) a.push(['class', q(c)]);
-      const st = styleOf(n);
+      const st = styleOf(n, ctx.dir, ctx.wrap);
       if (st) a.push(['style', q(st)]);
-      if (design) a.push(['data-n', q(n.id)]);
+      if (design) {
+        a.push(['data-n', q(n.id)]);
+        if (T.box) a.push(['data-box', "'1'"]);
+        if (n.style?.pin && PINS[n.style.pin]) a.push(['data-pin', q(n.style.pin)]);
+      }
       return a.concat(extra);
     };
     const kids = (c = ctx) => (n.children || []).map(child => webNode(child, c));
     let code;
     switch (n.type) {
-      case 'stack': code = hc('div', base('stack'), kids()); break;
-      case 'row': code = hc('div', base('row'), kids()); break;
-      case 'card': code = hc('section', base('card'), kids()); break;
+      case 'stack': code = hc('div', base('stack'), kids({ ...ctx, dir: 'col', wrap: false })); break;
+      case 'row': code = hc('div', base('row'), kids({ ...ctx, dir: 'row', wrap: p.wrap !== false })); break;
+      case 'grid': code = hc('div', base('grid-box'), kids({ ...ctx, dir: 'grid', wrap: false })); break;
+      case 'card': code = hc('section', base('card'), kids({ ...ctx, dir: 'col', wrap: false })); break;
       case 'heading': code = hc('h' + (Number(p.level) || 2), base(''), [tpl(p.text)]); break;
       case 'text': code = hc('p', base('text' + (p.muted ? ' muted' : '')), [tpl(p.text)]); break;
       case 'image': code = hc('img', base('', [['src', tpl(p.src)], ['alt', tpl(p.alt)], ['loading', "'lazy'"]])); break;
@@ -1219,6 +1706,13 @@ function makeGen(P, mode, opts = {}) {
       case 'divider': code = hc('hr', base('')); break;
       case 'spacer': code = hc('div', base('spacer')); break;
       case 'html': helpers.add('html'); code = hc('div', base('html'), [`html(${tpl(p.html)})`]); break;
+      case 'canvas': {
+        const name = canvasName(n);
+        code = hc('canvas', base(['canvas', p.fit && 'fit', p.pixel && 'pixel'].filter(Boolean).join(' '),
+          [['width', String(Math.max(1, Number(p.width) || 300))], ['height', String(Math.max(1, Number(p.height) || 150))], ['data-game', q(name)]]));
+        if (!games.some(g => g.name === name)) games.push({ name, id: n.id, setup: p.setup || '', frame: p.frame || '' });
+        break;
+      }
       case 'button': {
         const click = act(n, 'click', ctx);
         code = hc('button', base('btn ' + (p.variant || 'primary'), [['type', "'button'"], ['onclick', click && `event => ${click}(${callArgs(ctx)})`]]), [tpl(p.label)]);
@@ -1269,9 +1763,9 @@ function makeGen(P, mode, opts = {}) {
       case 'list': {
         const src = srcOf(p.source);
         if (!src) { code = hc('p', base('muted'), [q('(List: pick a data source)')]); break; }
-        const inner = { src: src.name };
+        const inner = { src: src.name, dir: p.layout === 'stack' || p.layout === 'grid' ? 'col' : 'row', wrap: false };
         const click = act(n, 'itemclick', inner);
-        const layout = p.layout === 'stack' ? 'item stack' : p.layout === 'grid' ? 'item card' : 'item row';
+        const layout = (p.layout === 'stack' ? 'item stack' : p.layout === 'grid' ? 'item card' : 'item row') + (p.plain ? ' plain' : '');
         const itemAttrs = [['class', q(layout)]];
         if (click) itemAttrs.push(['onclick', `event => ${click}(event, item, index)`]);
         const itemCode = hc('div', itemAttrs, kids(inner));
@@ -1311,7 +1805,7 @@ function makeGen(P, mode, opts = {}) {
         });
         const after = act(n, 'submit', ctx);
         const values = fields.map(f => `${propKey(f.name)}: ${f.type === 'boolean' ? `data.has(${q(f.name)})` : f.type === 'number' ? `Number(data.get(${q(f.name)}))` : `data.get(${q(f.name)})`}`);
-        actions.push(`// Form: adds to ${src.name}\nasync function submit_${n.id}(event${ctx.src ? ', item, index' : ''}) {\n  event.preventDefault();\n  const form = event.target, data = new FormData(form);\n  try {\n    await add(${q(src.name)}, { ${values.join(', ')} });\n    form.reset();\n  } catch (error) {\n    return fail(error);\n  }\n${after ? `  await ${after}(${callArgs(ctx)});\n` : '  render();\n'}}`);
+        actions.push(`// Form: adds to ${src.name}\nasync function submit_${n.id}(event${ctx.src ? ', item, index' : ''}) {\n  event.preventDefault();\n  const form = event.target, data = new FormData(form);\n  try {\n    await add(${q(src.name)}, { ${values.join(', ')} });\n    form.reset();\n  } catch (error) {\n    return fail(error, ${q(nodeLabel(n) + ': saving')});\n  }\n${after ? `  await ${after}(${callArgs(ctx)});\n` : '  render();\n'}}`);
         code = hc('form', base('form stack', [['onsubmit', `event => submit_${n.id}(${callArgs(ctx)})`]]), [...inputs, hc('button', [['class', "'btn primary'"]], [tpl(p.submit || 'Add')])]);
         break;
       }
@@ -1329,9 +1823,10 @@ function makeGen(P, mode, opts = {}) {
     const label = s => tpl(s);
     let code = '';
     switch (n.type) {
-      case 'stack': case 'row': case 'card':
+      case 'stack': case 'row': case 'grid': case 'card':
         code = (n.children || []).map(c => cliNode(c, ctx)).filter(Boolean).join('\n');
         break;
+      case 'canvas': code = `out.push(${q(`[canvas ${canvasName(n)}, ${Number(p.width) || 300}×${Number(p.height) || 150}: draws in the web app only]`)});`; break;
       case 'heading': code = ctx.src ? `out.push(${label(p.text)});` : `out.push(${q('#'.repeat(Number(p.level) || 2) + ' ')} + ${label(p.text)});`; break;
       case 'text': code = `out.push(${label(p.text)});`; break;
       case 'image': code = `out.push('[image' + (${label(p.alt)} ? ': ' + ${label(p.alt)} : '') + ']');`; break;
@@ -1453,7 +1948,7 @@ function makeGen(P, mode, opts = {}) {
   }
 
   function kindOf(src) {
-    if (src.kind === 'api') return design || mode === 'term' ? 'memory' : 'api';
+    if (src.kind === 'api') return design || mode === 'term' ? 'memory' : mode === 'node' && P.db?.cliDirect ? 'db' : 'api';
     if (src.kind === 'local') return mode === 'node' ? 'file' : mode === 'term' ? 'memory' : 'local';
     return src.kind;
   }
@@ -1463,12 +1958,14 @@ function makeGen(P, mode, opts = {}) {
     const kinds = new Set(P.sources.map(kindOf));
     const out = ['// --- Data'];
     if (kinds.has('api')) out.push(mode === 'node' ? "const API = process.env.API_URL || 'http://localhost:8080/api';" : `const API = ${q((P.app.apiBase || './api').replace(/\/+$/, ''))};`);
+    if (kinds.has('db')) out.push(dbCode(P, "require('node:path').join(__dirname, '..', 'server', 'data')") + '\nlet ready; // store.init(), once');
     if (kinds.has('file')) out.push(`const fs = require('node:fs');\nconst DATA_FILE = process.env.DATA_FILE || ${q(slug + '-data.json')};\nlet FILE = {};\ntry {\n  FILE = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));\n} catch {}`);
     const entries = P.sources.map(s => {
       const kind = kindOf(s), e = [`kind: ${q(kind)}`];
       if (kind === 'local') e.push(`key: ${q((design ? 'mpe-preview:' : '') + slug + ':' + s.name)}`);
       if (kind === 'file') e.push(`key: ${q(s.name)}`);
       if (kind === 'api') e.push(`url: API + ${q('/' + s.name)}`);
+      if (kind === 'db') e.push(`table: ${q(s.name)}`);
       if (kind === 'rest') {
         e.push(`url: ${q(s.url || '')}`);
         const path = String(s.path || '').split('.').map(x => x.trim()).filter(Boolean);
@@ -1485,16 +1982,45 @@ function makeGen(P, mode, opts = {}) {
     if (kinds.has('memory')) fetchCases.push("case 'memory':\n  return withIds(src.seed);");
     if (kinds.has('local')) fetchCases.push("case 'local': {\n  let saved = null;\n  try { saved = JSON.parse(localStorage.getItem(src.key)); } catch {}\n  return Array.isArray(saved) ? saved : withIds(src.seed);\n}");
     if (kinds.has('file')) fetchCases.push("case 'file':\n  return FILE[src.key] || withIds(src.seed);");
+    if (kinds.has('db')) fetchCases.push("case 'db':\n  await (ready ||= store.init());\n  return store.list(src.table);");
     const http = ['rest', 'api'].filter(k => kinds.has(k));
-    if (http.length) fetchCases.push(http.map(k => `case '${k}':`).join('\n') + " {\n  const res = await fetch(src.url);\n  if (!res.ok) throw new Error(`Couldn't load ${src.url} (${res.status})`);\n  let data = await res.json();\n  for (const key of src.path || []) data = data == null ? data : data[key];\n  return withIds(Array.isArray(data) ? data : []);\n}");
+    if (http.length) {
+      out.push(`// Fetches JSON, and says what went wrong when it can't.
+async function getJson(url, options) {
+  let res;
+  try {
+    res = await fetch(url, options);
+  } catch (error) {
+    throw new Error(\`Couldn't reach \${url} (\${error.message}). Is the server running, and is the address right?\`, { cause: error });
+  }
+  const text = await res.text();
+  let data = null;
+  try {
+    if (text) data = JSON.parse(text);
+  } catch {
+    if (/^\\s*</.test(text)) {
+      throw new Error(\`\${url} answered with a web page instead of JSON (status \${res.status}). The server there only serves files: run the server Export made for this data (server/server.js or server/server.py), or set App › API address to where it runs.\`);
+    }
+    throw new Error(\`\${url} didn't answer with JSON (status \${res.status}). It starts: \${text.slice(0, 80)}\`);
+  }
+  if (!res.ok) {
+    const error = new Error(\`\${url} answered \${res.status}\${data && data.error ? ': ' + data.error : ' ' + res.statusText}\`);
+    if (data && data.trace) error.stack += '\\n\\nServer stack:\\n' + data.trace;
+    throw error;
+  }
+  return data;
+}`);
+      fetchCases.push(http.map(k => `case '${k}':`).join('\n') + " {\n  let data = await getJson(src.url);\n  for (const key of src.path || []) data = data == null ? data : data[key];\n  if (!Array.isArray(data)) throw new Error(`${src.url} didn't give a list${src.path ? ' at ' + src.path.join('.') : ''}: check the data source's address and \"where the list is\"`);\n  return withIds(data);\n}");
+    }
     out.push(`// Reads a source's rows.\nasync function fetchRows(src) {\n  switch (src.kind) {\n${ind(fetchCases.join('\n'), 4)}\n  }\n}`);
 
     const saveCases = [];
     if (kinds.has('local')) saveCases.push("case 'local':\n  try { localStorage.setItem(src.key, JSON.stringify(S[name])); } catch (error) { console.warn(error); }\n  break;");
+    if (kinds.has('db')) saveCases.push("case 'db':\n  await (ready ||= store.init());\n  if (op === 'add') await store.insert(src.table, item);\n  else if (op === 'update') await store.update(src.table, item.id, patch);\n  else await store.remove(src.table, item.id);\n  break;");
     if (kinds.has('file')) saveCases.push("case 'file':\n  FILE[src.key] = S[name];\n  fs.writeFileSync(DATA_FILE, JSON.stringify(FILE, null, 2));\n  break;");
     if (http.length) {
       const guard = kinds.has('rest') ? (kinds.has('api') ? "case 'rest':\n  if (!src.writable) break;\n  // falls through\ncase 'api': {" : "case 'rest': {\n  if (!src.writable) break;") : "case 'api': {";
-      saveCases.push(guard + "\n  const url = op === 'add' ? src.url : src.url + '/' + encodeURIComponent(item.id);\n  const method = { add: 'POST', update: 'PATCH', remove: 'DELETE' }[op];\n  const body = op === 'remove' ? undefined : JSON.stringify(op === 'add' ? item : patch);\n  const res = await fetch(url, { method, body, headers: { 'Content-Type': 'application/json' } });\n  if (!res.ok) throw new Error(`Couldn't save to ${src.url} (${res.status})`);\n  break;\n}");
+      saveCases.push(guard + "\n  const url = op === 'add' ? src.url : src.url + '/' + encodeURIComponent(item.id);\n  const method = { add: 'POST', update: 'PATCH', remove: 'DELETE' }[op];\n  const body = op === 'remove' ? undefined : JSON.stringify(op === 'add' ? item : patch);\n  await getJson(url, { method, body, headers: { 'Content-Type': 'application/json' } });\n  break;\n}");
     }
     out.push(saveCases.length
       ? `// Stores a change. op is 'add', 'update' or 'remove'.\nasync function save(name, op, item, patch) {\n  const src = SOURCES[name];\n  switch (src.kind) {\n${ind(saveCases.join('\n'), 4)}\n  }\n}`
@@ -1542,6 +2068,72 @@ async function clear(name) {
     if (helpers.has('bar')) out.push("const bar = (value, max) => {\n  const filled = Math.round(Math.max(0, Math.min(1, value / max)) * 20);\n  return '[' + '#'.repeat(filled) + '.'.repeat(20 - filled) + '] ' + value + '/' + max;\n};");
     if (helpers.has('strip')) out.push("const strip = markup => String(markup).replace(/<[^>]*>/g, '').replace(/\\s+/g, ' ').trim();");
     if (helpers.has('choose')) out.push("async function choose(choices) {\n  choices.forEach(([, label], i) => IO.print('  ' + (i + 1) + ') ' + label));\n  const choice = choices[Number(await IO.ask('> ')) - 1];\n  return choice && choice[0];\n}");
+    if (games.length && web) out.push(`// --- Canvas games: each Canvas runs its frame() about 60 times a second.
+// GAMES.<name> is the game object its setup() and frame() keep things in.
+const GAMES = {}, LOOPS = [];
+const input = {
+  keys: new Set(),     // keys held down, lower case: 'arrowleft', ' ', 'a'
+  pointers: new Map(), // fingers or mouse buttons down on a canvas: id -> { x, y }
+  presses: new Set(),
+  // True once for each press of a key ('pointer' for a tap): for jumps and menus.
+  pressed: key => input.presses.delete(key),
+};
+addEventListener('keydown', event => {
+  const key = event.key.toLowerCase();
+  if (!input.keys.has(key)) input.presses.add(key);
+  input.keys.add(key);
+  const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(event.target.tagName);
+  if (!typing && /^(arrow| $)/.test(key) && document.querySelector('canvas[data-game]')) event.preventDefault();
+});
+addEventListener('keyup', event => input.keys.delete(event.key.toLowerCase()));
+addEventListener('blur', () => input.keys.clear());
+
+function trackPointers(canvas) {
+  const at = event => {
+    const r = canvas.getBoundingClientRect();
+    return { x: (event.clientX - r.left) * canvas.width / r.width, y: (event.clientY - r.top) * canvas.height / r.height };
+  };
+  canvas.addEventListener('pointerdown', event => {
+    canvas.setPointerCapture(event.pointerId);
+    input.pointers.set(event.pointerId, at(event));
+    input.presses.add('pointer');
+  });
+  canvas.addEventListener('pointermove', event => {
+    if (input.pointers.has(event.pointerId)) input.pointers.set(event.pointerId, at(event));
+  });
+  for (const type of ['pointerup', 'pointercancel']) canvas.addEventListener(type, event => input.pointers.delete(event.pointerId));
+}
+
+function canvasGame(name, setup, frame) {
+  LOOPS.push({ name, setup, frame, game: (GAMES[name] = {}), canvas: null, ready: false, broken: false });
+}
+
+let lastFrame = 0;
+function gameLoop(time) {
+  requestAnimationFrame(gameLoop);
+  const dt = lastFrame ? Math.min(0.05, (time - lastFrame) / 1000) : 0;
+  lastFrame = time;
+  for (const loop of LOOPS) {
+    const canvas = document.querySelector('canvas[data-game="' + loop.name + '"]');
+    if (!canvas || loop.broken) continue;
+    const ctx = canvas.getContext('2d');
+    try {
+      if (loop.canvas !== canvas) {
+        loop.canvas = canvas;
+        trackPointers(canvas);
+      }
+      if (!loop.ready) {
+        loop.ready = true;
+        loop.setup(loop.game, ctx, canvas);
+      }
+      loop.frame(loop.game, ctx, canvas, dt);
+    } catch (error) {
+      loop.broken = true; // one report, not sixty a second
+      fail(error, 'Canvas "' + loop.name + '"');
+    }
+  }
+  input.presses.clear();
+}`);
     if (helpers.has('pick')) out.push("// Shows one item's own menu.\nasync function pick(rows, screen) {\n  const index = Number(await IO.ask('Item number (1-' + rows.length + '): ')) - 1;\n  const item = rows[index];\n  if (!item) return;\n  const { out, opts } = screen(item, index);\n  out.forEach(line => IO.print('  ' + line));\n  opts.forEach((option, i) => IO.print('  ' + (i + 1) + ') ' + option.label));\n  IO.print('  b) Back');\n  const option = opts[Number(await IO.ask('> ')) - 1];\n  if (option) await option.run();\n}");
     return out.join('\n\n');
   }
@@ -1580,9 +2172,13 @@ async function clear(name) {
       checkbox: ['.check { display: flex; gap: 8px; align-items: center; cursor: pointer; }', '.check input { width: 18px; height: 18px; accent-color: var(--accent); margin: 0; }'],
       list: ['.list { display: flex; flex-direction: column; gap: 8px; }', '.list.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }',
         '.item { padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--radius); }', '.item.row { display: flex; gap: 10px; align-items: center; }',
-        '.item.row > .text { flex: 1; }', '.item.stack { gap: 6px; }'],
+        '.item.row > .text { flex: 1; }', '.item.stack { gap: 6px; }', '.item.plain { border: 0; padding: 0; background: none; }'],
       table: ['.table-wrap { overflow-x: auto; }', 'table { border-collapse: collapse; width: 100%; }',
         'th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }', 'th { font-size: 14px; color: var(--muted); font-weight: 600; }'],
+      grid: ['.grid-box { display: grid; gap: 12px; }'],
+      canvas: ['.canvas { display: block; max-width: 100%; background: #000; touch-action: none; }', '.canvas.fit { width: 100%; height: auto; }', '.canvas.pixel { image-rendering: pixelated; }'],
+      pin: ['.stack, .row, .card, .grid-box, .item { position: relative; }'],
+      fillh: ['.page { min-height: calc(100dvh - 64px); }'],
       nav: ['.nav { display: flex; gap: 4px; margin: 0 0 16px; border-bottom: 1px solid var(--line); overflow-x: auto; }',
         '.nav a { padding: 10px 12px; text-decoration: none; color: var(--muted); border-bottom: 2px solid transparent; white-space: nowrap; }',
         '.nav a[aria-current] { color: var(--fg); border-bottom-color: var(--accent); }'],
@@ -1634,8 +2230,12 @@ async function clear(name) {
       actions.length ? '// --- Actions\n\n' + actions.join('\n\n') : '',
       '// --- Views\n\n' + [...views, ...pages].join('\n\n'),
       router,
-      '// --- Start\nrender();' + (P.sources.length ? '\nfor (const name in SOURCES) load(name).catch(fail);' : '') +
-        (mode === 'web' && P.app.offline !== false ? "\nif ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js');" : ''),
+      games.length ? '// --- Canvas code\n\n' + games.map(g => `// Canvas "${g.name}"\nfunction setup_${g.id}(game, ctx, canvas) {\n${ind(g.setup.trim() || '// (nothing to set up)', 2)}\n}\n\nfunction frame_${g.id}(game, ctx, canvas, dt) {\n${ind(g.frame.trim() || '// (nothing to draw)', 2)}\n}`).join('\n\n') : '',
+      // Custom code runs before the first render, so views can use what it defines.
+      P.js?.trim() ? '// --- Custom JavaScript (App › Custom JavaScript)\n\n' + P.js.trim() : '',
+      '// --- Start\nrender();' + (P.sources.length ? "\nfor (const name in SOURCES) load(name).catch(error => fail(error, 'Loading ' + name));" : '') +
+        games.map(g => `\ncanvasGame(${q(g.name)}, setup_${g.id}, frame_${g.id});`).join('') + (games.length ? '\nrequestAnimationFrame(gameLoop);' : '') +
+        (mode === 'web' && targetsFor(P).offline ? "\nif ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js');" : ''),
     ];
     return parts.filter(Boolean).join('\n\n');
   }
@@ -1650,9 +2250,8 @@ async function clear(name) {
       `<title>${escHtml(a.name)}</title>`,
       a.desc ? `<meta name="description" content="${escHtml(a.desc)}">` : '',
       `<meta name="theme-color" content="${escHtml(a.accent || '#4f7cff')}">`,
-      design ? '' : '<link rel="icon" href="icon.svg">',
-      design ? '' : '<link rel="manifest" href="manifest.json">',
-      design ? '' : '<link rel="apple-touch-icon" href="icon-192.png">',
+      design ? '' : `<link rel="icon" href="data:image/svg+xml,${encodeURIComponent(iconSvg(a).trim()).replace(/%20/g, ' ')}">`,
+      design || !targetsFor(P).pwa ? '' : '<link rel="manifest" href="manifest.json">\n<link rel="apple-touch-icon" href="icon.png">',
     ].filter(Boolean).join('\n');
     return `<!doctype html>
 <html lang="en">
@@ -1667,7 +2266,7 @@ ${css()}
 ${design ? `<script>\n${designScript(opts)}\n<\/script>\n` : ''}<script>
 ${safe(js)}
 <\/script>
-${P.js?.trim() ? `<script>\n// Custom JavaScript (App › Custom JavaScript)\n${safe(P.js.trim())}\n<\/script>\n` : ''}</body>
+</body>
 </html>
 `;
   }
@@ -1685,7 +2284,7 @@ ${P.js?.trim() ? `<script>\n// Custom JavaScript (App › Custom JavaScript)\n${
     const parts = [
       "'use strict';",
       genState(),
-      `let IO, current = ${q(home.path)};\nconst render = () => {}; // the terminal redraws after every choice\nfunction toast(message) {\n  IO.print('» ' + message);\n}\nfunction fail(error) {\n  IO.print('! ' + ((error && error.message) || error));\n}\nfunction go(path) {\n  current = path;\n}`,
+      `let IO, current = ${q(home.path)};\nconst render = () => {}; // the terminal redraws after every choice\nfunction toast(message) {\n  IO.print('» ' + message);\n}\n// Problems print as one line; ${mode === 'node' ? 'DEBUG=1 also prints the stack trace' : 'the stack trace goes to the console'}.\nfunction fail(error, where) {\n  IO.print('! ' + (where ? where + ': ' : '') + ((error && error.message) || error));\n  ${mode === 'node' ? "if (process.env.DEBUG) console.error(error);" : 'console.error(error);'}\n}\nfunction go(path) {\n  current = path;\n}`,
       genHelpers(),
       data,
       actions.length ? '// --- Actions (the same as the web app\'s)\n\n' + actions.join('\n\n') : '',
@@ -1693,7 +2292,7 @@ ${P.js?.trim() ? `<script>\n// Custom JavaScript (App › Custom JavaScript)\n${
       `const SCREENS = {\n${P.pages.map(pg => `  ${propKey(pg.path)}: screen_${pg.path.replace(/\W/g, '_')},`).join('\n')}\n};\nconst TITLES = ${JSON.stringify(Object.fromEntries(P.pages.map(pg => [pg.path, pg.name])))};`,
       `async function main(io) {
   IO = io;
-${P.sources.length ? '  await Promise.all(Object.keys(SOURCES).map(name => load(name).catch(fail)));\n' : ''}  for (;;) {
+${P.sources.length ? "  await Promise.all(Object.keys(SOURCES).map(name => load(name).catch(error => fail(error, 'Loading ' + name))));\n" : ''}  for (;;) {
     const { out, opts } = SCREENS[current]();
 ${multi ? "    for (const path in TITLES) if (path !== current) opts.push({ label: '→ ' + TITLES[path], run: () => go(path) });\n" : ''}    IO.print('');
     IO.print('=== ' + ${q(P.app.name)}${multi ? " + ' › ' + TITLES[current]" : ''} + ' ===');
@@ -1722,6 +2321,11 @@ ${multi ? "    for (const path in TITLES) if (path !== current) opts.push({ labe
   return { html, core };
 }
 
+// How a component is named in messages: Button "Add", or just Button.
+function nodeLabel(n) {
+  return TYPES[n.type].l + (n.name ? ' "' + String(n.name).replace(/\s+/g, ' ') + '"' : '');
+}
+
 function optionList(text) {
   return String(text || '').split('\n').map(s => s.trim()).filter(Boolean).map(line => {
     const i = line.indexOf('|');
@@ -1729,17 +2333,148 @@ function optionList(text) {
   });
 }
 
-// Runs inside the preview: picks parts of the app on click, outlines the
-// selection, and passes console output and page changes back to the engine.
+// Runs inside the preview: picks parts of the app on click, moves them by
+// dragging, resizes them by their handles, and passes console output (with
+// stack traces) and page changes back to the engine.
 function designScript(opts) {
   return `(() => {
-  let interact = ${!!opts.interact};
+  let interact = ${!!opts.interact}, selId = ${q(opts.sel || '')};
+  let drag = null, dragged = 0;
   const post = message => parent.postMessage(Object.assign({ mpe: true }, message), '*');
+  const nodeOf = id => (id ? document.querySelector('[data-n="' + id + '"]') : null);
   const selStyle = document.createElement('style'), hoverStyle = document.createElement('style');
   document.head.append(selStyle, hoverStyle);
   const outline = (style, id, css) => { style.textContent = id ? '[data-n="' + id + '"] { ' + css + ' }' : ''; };
-  const select = id => outline(selStyle, id, 'outline: 2px solid #4f7cff !important; outline-offset: 2px;');
-  select(${q(opts.sel || '')});
+  const select = id => {
+    selId = id;
+    // A selected part can be dragged by touch too, so it doesn't scroll the page.
+    outline(selStyle, id, 'outline: 2px solid #4f7cff !important; outline-offset: 2px; touch-action: none;');
+  };
+  select(selId);
+
+  // Overlay: resize handles on the selection, and the drop marker while dragging.
+  const layer = document.createElement('div');
+  layer.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:2147483646';
+  const marker = document.createElement('div');
+  marker.style.cssText = 'position:fixed;display:none;background:#4f7cff;border-radius:2px;box-shadow:0 0 0 1px #fff';
+  const frame = document.createElement('div');
+  frame.style.cssText = 'position:fixed;display:none';
+  const size = document.createElement('div');
+  size.style.cssText = 'position:absolute;right:-2px;bottom:calc(100% + 4px);font:11px/16px system-ui,sans-serif;background:#4f7cff;color:#fff;padding:0 5px;border-radius:3px;white-space:nowrap';
+  frame.append(size);
+  for (const [dir, css, tip] of [['e', 'right:-7px;top:calc(50% - 6px);cursor:ew-resize', 'width'], ['s', 'bottom:-7px;left:calc(50% - 6px);cursor:ns-resize', 'height'], ['se', 'right:-7px;bottom:-7px;cursor:nwse-resize', 'size']]) {
+    const handle = document.createElement('div');
+    handle.dataset.handle = dir;
+    handle.title = 'Drag to set the ' + tip + '. Double-click to go back to automatic.';
+    handle.style.cssText = 'position:absolute;width:12px;height:12px;background:#fff;border:2px solid #4f7cff;border-radius:3px;pointer-events:auto;touch-action:none;' + css;
+    handle.addEventListener('dblclick', e => {
+      e.stopPropagation();
+      post({ type: 'resize', id: selId, w: dir === 's' ? null : '', h: dir === 'e' ? null : '' });
+    });
+    frame.append(handle);
+  }
+  layer.append(marker, frame);
+  document.body.append(layer);
+  (function place() {
+    const el = !interact && !drag && nodeOf(selId);
+    if (!el || el.matches('main')) frame.style.display = 'none';
+    else {
+      const r = el.getBoundingClientRect();
+      Object.assign(frame.style, { display: 'block', left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' });
+      size.textContent = Math.round(r.width) + ' × ' + Math.round(r.height) + (el.dataset.pin ? '  ·  pinned' : '');
+    }
+    requestAnimationFrame(place);
+  })();
+
+  // Where a drop at (x, y) would go: before or after a part, or inside a container.
+  const across = el => {
+    const style = getComputedStyle(el.parentElement);
+    return style.display.includes('grid') || (style.display.includes('flex') && style.flexDirection.startsWith('row'));
+  };
+  function dropAt(x, y, dragging) {
+    marker.style.display = 'none';
+    let el = document.elementFromPoint(x, y);
+    el = el && el.closest && el.closest('[data-n]');
+    if (!el || (dragging && el.closest('[data-n="' + dragging + '"]'))) return null;
+    const r = el.getBoundingClientRect(), fx = (x - r.left) / r.width, fy = (y - r.top) / r.height;
+    let pos;
+    if (el.matches('main')) pos = 'inside';
+    else if (el.dataset.box && fx > .2 && fx < .8 && fy > .2 && fy < .8) pos = 'inside';
+    else if (across(el)) pos = fx < .5 ? 'before' : 'after';
+    else pos = fy < .5 ? 'before' : 'after';
+    const m = marker.style;
+    m.display = 'block';
+    if (pos === 'inside') Object.assign(m, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', background: '#4f7cff22', outline: '2px dashed #4f7cff' });
+    else if (across(el)) Object.assign(m, { left: (pos === 'before' ? r.left - 3 : r.right - 1) + 'px', top: r.top + 'px', width: '4px', height: r.height + 'px', background: '#4f7cff', outline: '' });
+    else Object.assign(m, { left: r.left + 'px', top: (pos === 'before' ? r.top - 3 : r.bottom - 1) + 'px', width: r.width + 'px', height: '4px', background: '#4f7cff', outline: '' });
+    return { target: el.dataset.n, pos };
+  }
+
+  // Dragging a part moves it (or, if it is pinned, shifts it); dragging a
+  // handle resizes it. Sizes and shifts snap to 4px; hold Alt for 1px.
+  const snap = (v, e) => (e.altKey ? Math.round(v) : Math.round(v / 4) * 4);
+  addEventListener('pointerdown', e => {
+    if (interact || e.button) return;
+    const handle = e.target.dataset && e.target.dataset.handle;
+    const el = handle ? nodeOf(selId) : e.target.closest && e.target.closest('[data-n]');
+    if (!el || el.matches('main')) return;
+    if (!handle && e.pointerType !== 'mouse' && el.dataset.n !== selId) return; // touch: select first, then drag
+    const r = el.getBoundingClientRect();
+    drag = { id: el.dataset.n, el, handle, x: e.clientX, y: e.clientY, w0: r.width, h0: r.height, on: !!handle, pin: !!el.dataset.pin };
+    if (handle) e.preventDefault();
+  }, true);
+  addEventListener('pointermove', e => {
+    if (!drag) return;
+    const d = drag, dx = e.clientX - d.x, dy = e.clientY - d.y;
+    if (!d.on) {
+      if (Math.hypot(dx, dy) < 5) return;
+      d.on = true;
+      document.documentElement.style.userSelect = 'none';
+      if (!d.pin) d.el.style.opacity = '.45';
+    }
+    e.preventDefault();
+    if (d.handle) {
+      d.w = d.handle === 's' ? null : Math.max(8, snap(d.w0 + dx, e));
+      d.h = d.handle === 'e' ? null : Math.max(8, snap(d.h0 + dy, e));
+      if (d.w != null) Object.assign(d.el.style, { width: d.w + 'px', flex: 'none', maxWidth: 'none' });
+      if (d.h != null) Object.assign(d.el.style, { height: d.h + 'px', flex: 'none' });
+    } else if (d.pin) {
+      d.dx = snap(dx, e);
+      d.dy = snap(dy, e);
+      d.el.style.translate = d.dx + 'px ' + d.dy + 'px';
+    } else d.drop = dropAt(e.clientX, e.clientY, d.id);
+  }, true);
+  addEventListener('pointerup', () => {
+    const d = drag;
+    drag = null;
+    marker.style.display = 'none';
+    if (!d || !d.on) return;
+    dragged = Date.now();
+    document.documentElement.style.userSelect = '';
+    d.el.style.opacity = '';
+    if (d.handle) post({ type: 'resize', id: d.id, w: d.w, h: d.h });
+    else if (d.pin) post({ type: 'nudge', id: d.id, dx: d.dx || 0, dy: d.dy || 0 });
+    else if (d.drop) post({ type: 'move', id: d.id, target: d.drop.target, pos: d.drop.pos });
+  }, true);
+  addEventListener('pointercancel', () => { drag = null; marker.style.display = 'none'; }, true);
+  addEventListener('dragstart', e => { if (!interact && !e.dataTransfer.types.includes('application/x-mpe')) e.preventDefault(); }, true);
+
+  // Parts dragged in from the engine's Add tab or Layers.
+  addEventListener('dragover', e => {
+    if (interact || !e.dataTransfer.types.includes('application/x-mpe')) return;
+    e.preventDefault();
+    dropAt(e.clientX, e.clientY, null);
+  });
+  addEventListener('dragleave', e => { if (!e.relatedTarget) marker.style.display = 'none'; });
+  addEventListener('drop', e => {
+    const what = !interact && e.dataTransfer.getData('application/x-mpe');
+    if (!what) return;
+    e.preventDefault();
+    const at = dropAt(e.clientX, e.clientY, what.startsWith('move:') ? what.slice(5) : null);
+    marker.style.display = 'none';
+    post({ type: 'drop', what, target: at && at.target, pos: at && at.pos });
+  });
+
   addEventListener('click', e => {
     const link = e.target.closest && e.target.closest('a[href^="#/"]');
     if (link) {
@@ -1749,12 +2484,13 @@ function designScript(opts) {
     if (interact) return;
     e.preventDefault();
     e.stopImmediatePropagation();
+    if (Date.now() - dragged < 300 || (e.target.closest && e.target.closest('[data-handle]'))) return;
     const node = e.target.closest && e.target.closest('[data-n]');
     post({ type: 'select', id: node ? node.dataset.n : null });
   }, true);
   addEventListener('submit', e => { if (!interact) { e.preventDefault(); e.stopImmediatePropagation(); } }, true);
   addEventListener('mouseover', e => {
-    const node = !interact && e.target.closest && e.target.closest('[data-n]');
+    const node = !interact && !drag && e.target.closest && e.target.closest('[data-n]');
     outline(hoverStyle, node && node.dataset.n, 'outline: 1px dashed #4f7cff99; outline-offset: 2px;');
   });
   addEventListener('message', e => {
@@ -1762,16 +2498,20 @@ function designScript(opts) {
     if (e.data.type === 'sel') select(e.data.id);
     if (e.data.type === 'mode') { interact = e.data.interact; outline(hoverStyle); }
   });
+
+  // Console output goes to the engine, with stack traces for errors.
   const show = v => { if (typeof v === 'string') return v; try { return JSON.stringify(v); } catch { return String(v); } };
   for (const level of ['log', 'info', 'warn', 'error']) {
     const original = console[level];
     console[level] = (...args) => {
       original.apply(console, args);
-      post({ type: 'log', level, text: args.map(a => a instanceof Error ? a.message : show(a)).join(' ') });
+      const error = args.find(a => a instanceof Error);
+      post({ type: 'log', level, text: args.map(a => (a instanceof Error ? a.message : show(a))).join(' '), stack: (error && error.stack) || '' });
     };
   }
-  addEventListener('error', e => post({ type: 'log', level: 'error', text: e.message + (e.lineno ? ' (line ' + e.lineno + ')' : '') }));
-  addEventListener('unhandledrejection', e => post({ type: 'log', level: 'error', text: String((e.reason && e.reason.message) || e.reason) }));
+  addEventListener('error', e => post({ type: 'log', level: 'error', text: e.message,
+    stack: (e.error && e.error.stack) || (e.lineno ? 'at <script> (about:srcdoc:' + e.lineno + ':' + e.colno + ')' : '') }));
+  addEventListener('unhandledrejection', e => post({ type: 'log', level: 'error', text: String((e.reason && e.reason.message) || e.reason), stack: (e.reason && e.reason.stack) || '' }));
   let scrollTimer = 0;
   addEventListener('scroll', () => { clearTimeout(scrollTimer); scrollTimer = setTimeout(() => post({ type: 'scroll', y: scrollY }), 100); }, { passive: true });
   addEventListener('load', () => setTimeout(() => scrollTo(0, ${Number(opts.scroll) || 0}), 30));
@@ -1814,41 +2554,49 @@ function iconPng(app, size) {
   });
 }
 
-const SQL_TYPES = {
-  sqlite: { text: 'TEXT', longtext: 'TEXT', email: 'TEXT', url: 'TEXT', date: 'TEXT', number: 'REAL', boolean: 'INTEGER' },
-  postgres: { text: 'TEXT', longtext: 'TEXT', email: 'TEXT', url: 'TEXT', date: 'TEXT', number: 'DOUBLE PRECISION', boolean: 'BOOLEAN' },
+// --- Databases for "Server API" data
+
+const DB_KINDS = [
+  ['json', 'JSON file', 'server/data/db.json. Nothing to install.'],
+  ['sqlite', 'SQLite', 'server/data/app.db. Built into Node 22.13+ and Python.'],
+  ['postgres', 'PostgreSQL', 'Node uses the pg package; Python uses psycopg.'],
+  ['mssql', 'SQL Server', 'Node uses the mssql package; Python uses pyodbc. Can sign in as the Windows user.'],
+];
+const DB_DEFAULTS = {
+  kind: 'json', host: 'localhost', port: '', name: 'app', user: '', passwordEnv: 'DB_PASSWORD', auth: 'sql',
+  instance: '', encrypt: true, trustCert: true, ssl: false, driver: 'ODBC Driver 18 for SQL Server', schema: 'dbo', cliDirect: false,
 };
-const sqlValue = (v, type, dialect) => type === 'number' ? String(Number(v) || 0)
-  : type === 'boolean' ? (dialect === 'postgres' ? String(v === true || v === 'true') : (v === true || v === 'true' ? '1' : '0'))
-  : "'" + String(v ?? '').replace(/'/g, "''") + "'";
+const dbOf = P => ({ ...DB_DEFAULTS, ...P.db });
+const envName = (s, fallback) => (/^[A-Za-z_]\w*$/.test(s || '') ? s : fallback);
 
-function schemaSql(P, dialect) {
-  const T = SQL_TYPES[dialect];
-  const tables = apiSources(P).map(s => {
-    const cols = ['  "id" TEXT PRIMARY KEY'];
-    for (const f of s.fields) {
-      const def = f.type === 'number' ? '0' : f.type === 'boolean' ? (dialect === 'postgres' ? 'false' : '0') : "''";
-      cols.push(`  "${f.name}" ${T[f.type] || 'TEXT'} NOT NULL DEFAULT ${def}`);
-    }
-    cols.push(dialect === 'postgres' ? '  "created_at" TIMESTAMPTZ NOT NULL DEFAULT now()' : '  "created_at" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP');
-    return `CREATE TABLE IF NOT EXISTS "${s.name}" (\n${cols.join(',\n')}\n);`;
-  });
-  return `-- Tables for ${P.app.name}'s Server API data (${dialect === 'postgres' ? 'PostgreSQL' : 'SQLite'}).\n-- Generated by Mini PWA Engine. One table per data source; every row has an id.\n\n${tables.join('\n\n')}\n`;
+const SQL_TYPES = {
+  sqlite: { text: 'TEXT', number: 'REAL', boolean: 'INTEGER', id: 'TEXT', created: 'TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP' },
+  postgres: { text: 'TEXT', number: 'DOUBLE PRECISION', boolean: 'BOOLEAN', id: 'TEXT', created: 'TIMESTAMPTZ NOT NULL DEFAULT now()' },
+  mssql: { text: 'NVARCHAR(MAX)', number: 'FLOAT', boolean: 'BIT', id: 'NVARCHAR(64)', created: 'DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()' },
+};
+const sqlBool = (dialect, v) => (dialect === 'postgres' ? String(!!v) : v ? '1' : '0');
+
+function columnDef(dialect, type) {
+  const T = SQL_TYPES[dialect], kind = type === 'number' || type === 'boolean' ? type : 'text';
+  const def = kind === 'number' ? '0' : kind === 'boolean' ? sqlBool(dialect, false) : dialect === 'mssql' ? "N''" : "''";
+  return `${T[kind]} NOT NULL DEFAULT ${def}`;
 }
 
-function seedSql(P, dialect) {
-  const lines = [];
+// { table: { create, columns } }: how to make each table, and each field's
+// column (for adding fields to a table made earlier).
+function schemaSpec(P, dialect, schemaName = 'dbo') {
+  const col = c => (dialect === 'mssql' ? `[${c}]` : `"${c}"`);
+  const name = t => (dialect === 'mssql' ? `[${schemaName}].[${t}]` : `"${t}"`);
+  const spec = {};
   for (const s of apiSources(P)) {
-    (s.seed || []).forEach((row, i) => {
-      const cols = ['"id"', ...s.fields.map(f => `"${f.name}"`)];
-      const vals = [`'${s.name}-${i + 1}'`, ...s.fields.map(f => sqlValue(row[f.name], f.type, dialect))];
-      lines.push(`INSERT INTO "${s.name}" (${cols.join(', ')}) VALUES (${vals.join(', ')});`);
-    });
+    const columns = Object.fromEntries(s.fields.map(f => [f.name, columnDef(dialect, f.type)]));
+    const lines = [`  ${col('id')} ${SQL_TYPES[dialect].id} PRIMARY KEY`, ...Object.entries(columns).map(([c, d]) => `  ${col(c)} ${d}`), `  ${col('created_at')} ${SQL_TYPES[dialect].created}`];
+    spec[s.name] = { create: `CREATE TABLE ${dialect === 'mssql' ? '' : 'IF NOT EXISTS '}${name(s.name)} (\n${lines.join(',\n')}\n)`, columns };
   }
-  return `-- Sample rows for ${P.app.name}.\n${lines.join('\n') || '-- (none)'}\n`;
+  return spec;
 }
 
-function schemaJs(P) {
+function tableData(P) {
   const tables = {}, seed = {};
   for (const s of apiSources(P)) {
     tables[s.name] = Object.fromEntries(s.fields.map(f => [f.name, f.type]));
@@ -1857,126 +2605,340 @@ function schemaJs(P) {
       return [f.name, f.type === 'number' ? Number(v) || 0 : f.type === 'boolean' ? v === true || v === 'true' : v ?? ''];
     })) }));
   }
-  return `// The API's collections and their fields, from the app's Server API data
-// sources. Field types: ${FIELD_TYPES.map(t => t[0]).join(', ')}.
-
-const TABLES = ${JSON.stringify(tables, null, 2)};
-
-// Sample rows, added when the data store is created.
-const SEED = ${JSON.stringify(seed, null, 2)};
-
-module.exports = { TABLES, SEED };
-`;
+  return { tables, seed };
 }
 
-function hooksJs(P) {
-  const blocks = apiSources(P).map(s => `  ${propKey(s.name)}: {
-    // async beforeCreate(row, req) { return row; },
-    // async beforeUpdate(existing, patch, req) { return patch; },
-    // async beforeDelete(existing, req) {},
-  },`);
-  return `// Server-side logic: rules the server enforces, whatever the app sends.
-// Each hook may change the row or throw to refuse the request. For example:
-//
+// server/schema.sql, for people who make the tables themselves.
+function schemaSql(P, dialect, schemaName) {
+  const { tables, seed } = tableData(P), spec = schemaSpec(P, dialect, schemaName);
+  const col = c => (dialect === 'mssql' ? `[${c}]` : `"${c}"`);
+  const name = t => (dialect === 'mssql' ? `[${schemaName}].[${t}]` : `"${t}"`);
+  const value = (v, type) => (type === 'number' ? String(Number(v) || 0) : type === 'boolean' ? sqlBool(dialect, v)
+    : (dialect === 'mssql' ? 'N' : '') + "'" + String(v ?? '').replace(/'/g, "''") + "'");
+  const out = [`-- Tables for ${P.app.name}'s Server API data (${DB_KINDS.find(k => k[0] === dialect)[1]}), with the sample rows.`,
+    '-- The server makes these itself on its first run; this file is for doing it by hand.', ''];
+  for (const table in spec) {
+    out.push(spec[table].create + ';', '');
+    for (const row of seed[table]) {
+      const keys = Object.keys(row);
+      out.push(`INSERT INTO ${name(table)} (${keys.map(col).join(', ')}) VALUES (${keys.map(k => value(row[k], k === 'id' ? 'text' : tables[table][k])).join(', ')});`);
+    }
+    out.push('');
+  }
+  return out.join('\n');
+}
+
+// --- Node server parts
+
+function dataJs(P, db) {
+  const { tables, seed } = tableData(P);
+  return `// --- The data: one collection per "Server API" data source, and its fields.
+// Field types: ${FIELD_TYPES.map(t => t[0]).join(', ')}.
+const TABLES = ${JSON.stringify(tables, null, 2)};
+
+// Sample rows, added when a collection is first made.
+const SEED = ${JSON.stringify(seed, null, 2)};` + (db.kind === 'json' ? '' : `
+
+// The tables, in ${DB_KINDS.find(k => k[0] === db.kind)[1]}.
+const SCHEMA = ${JSON.stringify(schemaSpec(P, db.kind, db.schema), null, 2)};`);
+}
+
+function storeJs(P, dataDir) {
+  const db = dbOf(P), pw = envName(db.passwordEnv, 'DB_PASSWORD');
+  if (db.kind === 'sqlite') return template('t-store-sqlite', { DATA: dataDir });
+  if (db.kind === 'postgres') {
+    return template('t-store-pg', {
+      PWENV: pw,
+      CONFIG: `{
+    host: process.env.DB_HOST || ${q(db.host || 'localhost')},
+    port: Number(process.env.DB_PORT) || ${Number(db.port) || 5432},
+    database: process.env.DB_NAME || ${q(db.name || 'app')},
+    user: process.env.DB_USER || ${q(db.user || 'app')},
+    password: process.env.${pw},
+    ssl: ${db.ssl ? 'true' : 'false'},
+  }`,
+    });
+  }
+  if (db.kind === 'mssql') {
+    const win = db.auth === 'windows', host = db.host || 'localhost';
+    const server = db.instance ? `${host}\\${db.instance}` : db.port ? `${host},${db.port}` : host;
+    const tail = ';Trusted_Connection=Yes;Encrypt=' + (db.encrypt ? 'Yes' : 'No') + ';' + (db.trustCert ? 'TrustServerCertificate=Yes;' : '');
+    return template('t-store-mssql', {
+      AUTH: win
+        ? `It signs in as the Windows user running it (a trusted\n// connection) through the msnodesqlv8 driver, which runs on Windows and needs\n// Microsoft's "${db.driver}". DB_HOST and DB_NAME change the server and\n// database; DB_CONNECTION replaces the whole connection string.`
+        : `It signs in with a SQL Server login: DB_HOST,\n// DB_PORT, DB_NAME and DB_USER change the settings below, and the password\n// comes from ${pw}.`,
+      DRIVER: q(win ? 'mssql/msnodesqlv8' : 'mssql'),
+      CONFIG: win
+        ? `{
+    connectionString: process.env.DB_CONNECTION ||
+      ${q(`Driver={${db.driver}};Server=`)} + (process.env.DB_HOST || ${q(server)}) +
+      ';Database=' + (process.env.DB_NAME || ${q(db.name || 'app')}) + ${q(tail)},
+  }`
+        : `{
+    server: process.env.DB_HOST || ${q(host)},
+${db.instance ? '' : `    port: Number(process.env.DB_PORT) || ${Number(db.port) || 1433},\n`}    database: process.env.DB_NAME || ${q(db.name || 'app')},
+    user: process.env.DB_USER || ${q(db.user || 'sa')},
+    password: process.env.${pw},
+    options: { encrypt: ${!!db.encrypt}, trustServerCertificate: ${!!db.trustCert}${db.instance ? `, instanceName: process.env.DB_INSTANCE || ${q(db.instance)}` : ''} },
+  }`,
+      LABEL: win ? "(process.env.DB_HOST || " + q(server) + ") + ' (Windows sign-in)'" : "`${config.user}@${config.server}/${config.database}`",
+      SCHEMA: q(db.schema || 'dbo'),
+    });
+  }
+  return template('t-store-json', { DATA: dataDir });
+}
+
+// The store and the data it serves, for the server or (connecting directly) the terminal app.
+function dbCode(P, dataDir) {
+  return dataJs(P, dbOf(P)) + '\n\n' + storeJs(P, dataDir).trim();
+}
+
+function rulesJs(P) {
+  return `// --- Server-side rules: checks the server makes whatever the app sends. Each
+// may change the row, or throw to refuse the request. For example:
 //   async beforeCreate(row) {
 //     if (!row.title.trim()) throw Object.assign(new Error('A title is needed'), { status: 400 });
 //     return row;
 //   },
-
-module.exports = {
-${blocks.join('\n')}
-};
-`;
+const RULES = {
+${apiSources(P).map(s => `  ${propKey(s.name)}: {
+    // async beforeCreate(row, req) { return row; },
+    // async beforeUpdate(existing, patch, req) { return patch; },
+    // async beforeDelete(existing, req) {},
+  },`).join('\n')}
+};`;
 }
 
-// Which extra targets apply, given the app and the export settings.
+// npm packages the Node code needs.
+function nodeDeps(P) {
+  const t = targetsFor(P), db = dbOf(P);
+  if (!t.api || !(t.node || (t.cli && db.cliDirect))) return {};
+  if (db.kind === 'postgres') return { pg: '^8.12.0' };
+  if (db.kind === 'mssql') return db.auth === 'windows' ? { mssql: '^12.0.0', msnodesqlv8: '^6.0.0' } : { mssql: '^12.0.0' };
+  return {};
+}
+
+function nodeServer(P) {
+  const a = P.app, t = targetsFor(P), db = dbOf(P), api = t.api, deps = Object.keys(nodeDeps(P));
+  const out = [[
+    '#!/usr/bin/env node',
+    `// Server for ${a.name}: serves the app${api ? ' and its data API (/api)' : ''} from one process.`,
+    '//   node server/server.js            then open http://localhost:8080/',
+    api ? '//   API_ONLY=1 node server/server.js   just the API, with CORS, for an app hosted elsewhere' : '',
+    `// Settings come from the environment: PORT (8080)${api ? ', CORS_ORIGIN (*), DEBUG=1 (stack traces in\n// error replies), and the database settings below' : ''}.`,
+    deps.length ? `// Needs ${deps.join(' and ')}: run \`npm install\` in the app's folder first.`
+      : `// Nothing to install: Node 18 or later${api && db.kind === 'sqlite' ? ' (22.13 or later for SQLite)' : ''}.`,
+  ].filter(Boolean).join('\n'),
+  "'use strict';\n\nconst http = require('node:http');\nconst fs = require('node:fs');\nconst path = require('node:path');" + (api ? "\nconst crypto = require('node:crypto');" : ''),
+  `const NAME = ${q(a.name)};\nconst ROOT = path.join(__dirname, '..');\nconst PORT = Number(process.env.PORT) || 8080;` +
+    (api ? "\nconst API_ONLY = process.env.API_ONLY === '1';\nconst CORS_ORIGIN = process.env.CORS_ORIGIN || '*';\nconst DEBUG = process.env.DEBUG === '1';" : '')];
+  if (api) out.push(dataJs(P, db), rulesJs(P), storeJs(P, "path.join(__dirname, 'data')").trim(), template('t-node-api').trim());
+  out.push(template('t-node-static').trim());
+  out.push(api
+    ? "// --- Start\n\nstore.init().then(() => {\n  http.createServer(async (req, res) => {\n    if (await handleApi(req, res)) return;\n    if (API_ONLY) return notFound(res, req.url);\n    serveStatic(req, res);\n  }).listen(PORT, () => {\n" +
+      "    if (API_ONLY) console.log(`${NAME}: the API is at http://localhost:${PORT}/api`);\n    else console.log(`${NAME} is at http://localhost:${PORT}/ (API at /api; data: ${store.label})`);\n  });\n" +
+      "}, error => {\n  console.error(`Couldn't open the database (${store.label}):`, error);\n  process.exit(1);\n});"
+    : "// --- Start\n\nhttp.createServer(serveStatic).listen(PORT, () => {\n  console.log(`${NAME} is at http://localhost:${PORT}/`);\n});");
+  return out.join('\n\n') + '\n';
+}
+
+// --- Python server parts
+
+// A JSON value written as a Python literal.
+const pyLit = value => JSON.stringify(value, null, 4).replace(/("(?:[^"\\]|\\.)*")|\b(true|false|null)\b/g,
+  (m, str, word) => str || { true: 'True', false: 'False', null: 'None' }[word]);
+const pyStr = s => JSON.stringify(String(s));
+
+function pyServer(P) {
+  const a = P.app, t = targetsFor(P), db = dbOf(P), api = t.api, pw = envName(db.passwordEnv, 'DB_PASSWORD');
+  const fill = {
+    NAME: a.name, WHAT: api ? ' and its data API (/api)' : '',
+    USAGE: api ? '#   API_ONLY=1 python3 server/server.py   just the API, with CORS, for an app hosted elsewhere\n' : '',
+    ENV: api ? ', CORS_ORIGIN (*), DEBUG=1 (stack traces in\n# error replies), and the database settings below' : '',
+    DATA: 'API = False',
+  };
+  if (api) {
+    const { tables, seed } = tableData(P);
+    const data = `API = True
+
+# --- The data: one collection per "Server API" data source, and its fields.
+TABLES = ${pyLit(tables)}
+
+# Sample rows, added when a collection is first made.
+SEED = ${pyLit(seed)}` + (db.kind === 'json' ? '' : `
+
+SCHEMA = ${pyLit(schemaSpec(P, db.kind, db.schema))}`);
+    const rules = `# --- Server-side rules: checks the server makes whatever the app sends. Each
+# may change the row, or raise HttpError(400, "...") to refuse the request:
+#
+#   def check_title(row):
+#       if not row["title"].strip():
+#           raise HttpError(400, "A title is needed")
+#       return row
+#
+# then add "before_create": check_title to the collection below. The others are
+# "before_update": f(existing, patch) -> patch, and "before_delete": f(existing).
+RULES = {
+${apiSources(P).map(s => `    ${pyStr(s.name)}: {},`).join('\n')}
+}`;
+    let store;
+    if (db.kind === 'json') store = template('t-py-json').trim();
+    else {
+      let connect, args, name;
+      if (db.kind === 'sqlite') {
+        name = "SQLite, through Python's built-in sqlite3 module. The database is\n# server/data/app.db (DB_FILE changes it)";
+        connect = `import sqlite3
+
+DB_FILE = os.environ.get("DB_FILE") or os.path.join(HERE, "data", "app.db")
+
+
+def connect():
+    os.makedirs(os.path.dirname(DB_FILE), exist_ok=True)
+    return sqlite3.connect(DB_FILE)`;
+        args = '"sqlite", connect, "?", DB_FILE';
+      } else if (db.kind === 'postgres') {
+        name = 'PostgreSQL, through psycopg (pip install "psycopg[binary]"). It connects\n# to DATABASE_URL if set, otherwise to DB_HOST, DB_PORT, DB_NAME and DB_USER,\n# with the password from ' + pw;
+        connect = `try:
+    import psycopg
+except ImportError:
+    sys.exit('This server keeps its data in PostgreSQL. Install the driver first: pip install "psycopg[binary]"')
+
+DB_SETTINGS = {
+    "host": os.environ.get("DB_HOST", ${pyStr(db.host || 'localhost')}),
+    "port": int(os.environ.get("DB_PORT", ${pyStr(Number(db.port) || 5432)})),
+    "dbname": os.environ.get("DB_NAME", ${pyStr(db.name || 'app')}),
+    "user": os.environ.get("DB_USER", ${pyStr(db.user || 'app')}),
+    "password": os.environ.get(${pyStr(pw)}),
+    "sslmode": ${pyStr(db.ssl ? 'require' : 'prefer')},
+}
+
+
+def connect():
+    if os.environ.get("DATABASE_URL"):
+        return psycopg.connect(os.environ["DATABASE_URL"])
+    return psycopg.connect(**DB_SETTINGS)`;
+        args = '"postgres", connect, "%s", "DATABASE_URL" if os.environ.get("DATABASE_URL") else "postgres://%(user)s@%(host)s:%(port)s/%(dbname)s" % DB_SETTINGS';
+      } else {
+        const win = db.auth === 'windows', host = db.host || 'localhost';
+        const server = db.instance ? `${host}\\${db.instance}` : db.port ? `${host},${db.port}` : host;
+        name = 'Microsoft SQL Server, through pyodbc (pip install pyodbc) and\n# Microsoft\'s "' + db.driver + '".\n# ' + (win
+          ? 'It signs in as the Windows user running it (a trusted connection).\n# DB_HOST and DB_NAME change the server and database; DB_CONNECTION\n# replaces the whole connection string'
+          : 'It signs in with a SQL Server login: DB_HOST, DB_NAME and DB_USER\n# change the settings, and the password comes from ' + pw);
+        connect = `try:
+    import pyodbc
+except ImportError:
+    sys.exit("This server keeps its data in SQL Server. Install the driver first: pip install pyodbc (and Microsoft's ODBC Driver for SQL Server)")
+
+DB_SCHEMA = ${pyStr(db.schema || 'dbo')}
+DB_SERVER = os.environ.get("DB_HOST", ${pyStr(server)})
+DB_CONNECTION = os.environ.get("DB_CONNECTION") or (
+    ${pyStr(`Driver={${db.driver}};Server=`)} + DB_SERVER + ";Database=" + os.environ.get("DB_NAME", ${pyStr(db.name || 'app')}) + ";"
+    + ${win ? '"Trusted_Connection=yes;"' : `"UID=" + os.environ.get("DB_USER", ${pyStr(db.user || 'sa')}) + ";PWD={" + os.environ.get(${pyStr(pw)}, "").replace("}", "}}") + "};"`}
+    + ${pyStr('Encrypt=' + (db.encrypt ? 'yes' : 'no') + ';' + (db.trustCert ? 'TrustServerCertificate=yes;' : ''))}
+)
+
+
+def connect():
+    return pyodbc.connect(DB_CONNECTION)`;
+        args = `"mssql", connect, "?", DB_SERVER${win ? ' + " (Windows sign-in)"' : ''}`;
+      }
+      store = template('t-py-sql', { DBNAME: name, CONNECT: connect, STOREARGS: args }).trim();
+    }
+    fill.DATA = [data, rules, template('t-py-api').trim(), store].join('\n\n\n');
+  }
+  return template('t-py', fill);
+}
+
+// --- What Export writes
+
+// Which files to write, from the export settings and what the app uses.
 function targetsFor(P) {
-  const t = P.targets, api = apiSources(P).length > 0;
+  const t = P.targets || {}, api = apiSources(P).length > 0, python = !!t.python;
+  const pwa = t.pwa !== false;
   return {
-    cli: t.cli !== false, python: !!t.python, nginx: !!t.nginx, docker: !!t.docker,
-    api, apiServer: api && t.api !== false, appServer: api && t.app !== false,
-    db: api ? (t.db || 'json') : null,
+    pwa, offline: pwa && P.app.offline !== false, project: !!t.project, python, nginx: !!t.nginx, cli: !!t.cli,
+    // Server API data needs a server: Node's, unless Python's is chosen.
+    node: !!t.node || (api && !python), nodeAuto: api && !t.node && !python,
+    docker: !!t.docker, api, db: api ? dbOf(P).kind : null, sql: !!t.sql && api && dbOf(P).kind !== 'json',
   };
 }
 
 function genReadme(P, files) {
-  const a = P.app, t = targetsFor(P), has = f => f in files;
+  const a = P.app, t = targetsFor(P), db = dbOf(P), deps = Object.keys(nodeDeps(P));
   const s = [`# ${a.name}`, ''];
   if (a.desc) s.push(a.desc, '');
-  s.push('Made with [Mini PWA Engine](https://sonusario.github.io/mini_pwa_engine/). Open `project.mpe.json` in the engine to keep editing.', '',
-    '## The app', '',
-    '`index.html` is the whole app: plain HTML, CSS and JavaScript with no framework and nothing to build. ' +
-    (a.offline !== false ? '`sw.js` keeps it working offline, and ' : '') + '`manifest.json` and the icons let people install it.', '',
-    '### Host it on GitHub Pages', '',
-    '1. Put these files in a GitHub repository (the folder can be the repository root).',
-    '2. In the repository, open **Settings › Pages**, choose **Deploy from a branch**, pick the branch and the folder, and save.',
-    `3. After a minute the app is at \`https://<user>.github.io/<repository>/\`.`, '');
-  if (t.api) s.push('GitHub Pages only serves files, so the **Server API** data needs one of the servers below running somewhere. Point the app at it with **App › API address** in the engine (for example `https://api.example.com/api`) and export again.', '');
-  s.push('### Run it on your computer', '',
-    'Service workers need a real web server, not a file opened from disk. With Node 18 or later:', '',
-    '```sh', t.appServer ? 'node server/app.js      # the app and its API, http://localhost:8080/' : 'node server/web.js      # http://localhost:8080/', '```', '');
-  if (has('server/web.py')) s.push('Or with Python 3 (no API):', '', '```sh', 'python3 server/web.py', '```', '');
-  s.push('## Servers', '', '| File | What it is |', '| --- | --- |',
-    '| `server/web.js` | **Web server.** Serves the app files only. No packages needed. |');
-  if (t.apiServer) s.push('| `server/api.js` | **API server.** The REST API on its own, with CORS, for when the app is hosted elsewhere. Port 3000. |');
-  if (t.appServer) s.push('| `server/app.js` | **Application server.** The app and its API on one port (8080), with server-side rules in `server/lib/hooks.js`. Deploy this one. |');
-  if (has('server/web.py')) s.push('| `server/web.py` | Web server in Python, standard library only. |');
-  if (has('server/nginx.conf')) s.push('| `server/nginx.conf` | nginx site config for hosting the files' + (t.api ? ', passing `/api` to the application server' : '') + '. |');
-  s.push('');
-  if (t.api) {
-    const names = apiSources(P).map(x => '`' + x.name + '`').join(', ');
-    s.push('### API', '', `Collections: ${names}. Each has:`, '',
-      '```', 'GET    /api/<collection>        list', 'POST   /api/<collection>        add (JSON body)', 'GET    /api/<collection>/<id>   one row',
-      'PATCH  /api/<collection>/<id>   change fields', 'DELETE /api/<collection>/<id>   delete', '```', '',
-      'Fields are checked against `server/lib/schema.js`: unknown fields are dropped and values are converted to the field type.', '');
-    s.push('### Database', '');
-    if (t.db === 'json') s.push('Data is kept in `server/data/db.json`, created on first run with the sample rows. Fine for prototypes; pick SQLite or PostgreSQL in the engine\'s Export dialog for more.', '');
-    if (t.db === 'sqlite') s.push('Data is kept in SQLite at `server/data/app.db`, using Node\'s built-in `node:sqlite` (Node 22.13+, or 22.5+ with `--experimental-sqlite`). Tables come from `server/db/schema.sql`; sample rows are added when the file is first made.', '');
-    if (t.db === 'postgres') s.push('Data is kept in PostgreSQL. Install the driver, start a database, and point `DATABASE_URL` at it:', '',
-      '```sh', 'cd server && npm install', 'docker compose up -d db          # PostgreSQL 16 with db/schema.sql and db/seed.sql loaded',
-      'DATABASE_URL=postgres://app:app@localhost:5432/app node app.js', '```', '',
-      'Without Docker, create a database and run `server/db/schema.sql` then `server/db/seed.sql` in it.', '');
+  s.push('Made with [Mini PWA Engine](https://sonusario.github.io/mini_pwa_engine/). ' +
+    (t.project ? 'Open `project.mpe.json` in the engine to keep editing.' : 'Open the project file you saved from the engine to keep editing.'), '');
+  const about = {
+    'index.html': 'The app: HTML, CSS and plain JavaScript, no framework.',
+    'manifest.json': 'Lets people install the app.', 'icon.png': 'The app icon.', 'sw.js': 'Keeps the app working offline.',
+    'project.mpe.json': 'The project, to open in the engine again.', 'package.json': `The npm packages the servers need (${deps.join(', ')}).`,
+    'server/server.js': 'Node server: the app' + (t.api ? ' and its data API.' : '.'), 'server/server.py': 'Python server: the app' + (t.api ? ' and its data API.' : '.'),
+    'server/nginx.conf': 'nginx site config.', 'server/schema.sql': 'The tables and sample rows, to make them by hand.',
+    'server/Dockerfile': 'Container for the server.', 'server/docker-compose.yml': 'Starts the server' + (t.api && ['postgres', 'mssql'].includes(db.kind) ? ' and its database.' : '.'),
+    'cli/app.js': 'The same app in a terminal.', '.gitignore': 'Keeps local data and packages out of git.',
+  };
+  s.push('## Files', '', '| File | |', '| --- | --- |', ...Object.keys(files).concat(t.pwa ? ['icon.png'] : []).sort().map(f => `| \`${f}\` | ${about[f] || ''} |`), '');
+
+  s.push('## Run it', '', '`index.html` runs on any static host. For GitHub Pages: put the files in a repository, open **Settings › Pages**, deploy from the branch, and the app appears at `https://<user>.github.io/<repository>/`.', '');
+  if (t.api) s.push('The app keeps **Server API** data on a server, so it needs one of the servers below running. When the app is hosted somewhere else, set **App › API address** in the engine to the server\'s `/api` address and export again.', '');
+  if (deps.length) s.push('```sh', 'npm install', '```', '');
+  if (t.node) s.push('```sh', 'node server/server.js        # http://localhost:8080/', '```', '');
+  if (t.python) s.push('```sh', 'python3 server/server.py     # http://localhost:8080/', '```', '');
+  if (t.node || t.python) {
+    s.push('Both serve the files in this folder, including any in sub-folders (like `data/items.json`), and keep `server/` and `cli/` private. A missing file answers with a plain `404 Not found: <path>`, so a wrong address is easy to spot.', '');
+    if (t.api) s.push('`PORT` changes the port. `API_ONLY=1` serves only the API, with CORS (`CORS_ORIGIN` limits who may call it). `DEBUG=1` adds the stack trace to error replies.', '');
   }
-  if (has('server/Dockerfile')) s.push('### Docker', '', '```sh', 'cd server', 'docker compose up --build', '```', '', 'Then open http://localhost:8080/.', '');
-  if (t.cli) s.push('## Terminal version', '', '`cli/app.js` is the same app as a text program: the same state, data and actions, with each page printed as text and its buttons and inputs as a numbered menu. It suits places without a screen of their own, like a server shell or a device on a serial console.', '',
-    '```sh', 'node cli/app.js', '```', '',
-    (P.sources.some(x => x.kind === 'local') ? 'Data the web app keeps on the device is kept in a JSON file next to where you run it (`DATA_FILE` changes it). ' : '') +
-    (t.api ? 'Server API data comes from `API_URL` (default `http://localhost:8080/api`).' : ''), '');
-  s.push('## Files', '', '```', ...Object.keys(files).sort().concat(['icon-192.png', 'icon-512.png']).sort(), '```', '');
+  if (t.api) {
+    s.push('## Data', '', `Collections: ${apiSources(P).map(x => '`' + x.name + '`').join(', ')}. Each answers \`GET /api/<collection>\` (list), \`POST\` (add), and \`GET\`, \`PATCH\`, \`PUT\` and \`DELETE\` on \`/api/<collection>/<id>\`. Unknown fields are dropped and values are converted to the field's type. Server-side rules go in the RULES section of the server file.`, '');
+    if (db.kind === 'json') s.push('Data is kept in `server/data/db.json`, made on the first run with the sample rows (`DB_FILE` moves it).', '');
+    if (db.kind === 'sqlite') s.push('Data is kept in SQLite at `server/data/app.db` (`DB_FILE` moves it). Node needs 22.13 or later; Python has SQLite built in.', '');
+    if (db.kind === 'postgres') s.push(`Data is kept in PostgreSQL: \`${db.user || 'app'}@${db.host || 'localhost'}:${Number(db.port) || 5432}/${db.name || 'app'}\`. Set the password in \`${envName(db.passwordEnv, 'DB_PASSWORD')}\`, or the whole address in \`DATABASE_URL\`. \`DB_HOST\`, \`DB_PORT\`, \`DB_NAME\` and \`DB_USER\` change the rest. Python needs \`pip install "psycopg[binary]"\`.`, '');
+    if (db.kind === 'mssql') {
+      s.push(`Data is kept in SQL Server: database \`${db.name || 'app'}\` on \`${db.instance ? `${db.host || 'localhost'}\\${db.instance}` : db.host || 'localhost'}\`, schema \`${db.schema || 'dbo'}\`. The database must exist; the server makes the tables.`, '');
+      if (db.auth === 'windows') s.push(`It signs in as the **Windows user who runs the server** (a trusted connection, no password). That works on Windows with Microsoft's "${db.driver}" installed; Node uses the \`msnodesqlv8\` driver, Python uses \`pyodbc\`. \`DB_HOST\` and \`DB_NAME\` change the server and database, and \`DB_CONNECTION\` replaces the whole connection string.`, '');
+      else s.push(`It signs in with a SQL Server login (\`${db.user || 'sa'}\`). Set the password in \`${envName(db.passwordEnv, 'DB_PASSWORD')}\`; \`DB_HOST\`, \`DB_PORT\`, \`DB_NAME\` and \`DB_USER\` change the rest. Python needs \`pip install pyodbc\` and Microsoft's "${db.driver}".`, '');
+    }
+    s.push('Tables are made on the first run with the sample rows, and fields added in the engine later become new columns.', '');
+  }
+  if (t.docker) s.push('## Docker', '', '```sh', 'cd server', 'docker compose up --build', '```', '', 'Then open http://localhost:8080/.' + (t.api && db.kind === 'mssql' ? ' The compose file runs SQL Server with a SQL login (Windows sign-in doesn\'t work inside a Linux container) and uses its `master` database.' : ''), '');
+  if (t.cli) {
+    s.push('## Terminal version', '', '`cli/app.js` is the same app as a text program: the same state, data and actions, with each page printed as text and its buttons and inputs as a numbered menu.', '',
+      '```sh', 'node cli/app.js', '```', '');
+    if (t.api) s.push(db.cliDirect ? 'It reads and writes the database directly, with the same settings as the server, so no server needs to be running.' : 'Server API data comes from the running server at `API_URL` (default `http://localhost:8080/api`).', '');
+  }
+  s.push('## When something goes wrong', '', 'Errors show a short message on screen that names the part of the app that was running (for example *Button "Add": when clicked*), and the full error with its stack trace goes to the browser console. Servers print the stack trace of any failed request; with `DEBUG=1` they also send it back, and it appears under the app\'s error in the console.', '');
   return s.join('\n').replace(/\n{3,}/g, '\n\n');
 }
 
-// All text files of the export, keyed by path. Icons (PNG) are added by exportZip.
+// All text files of the export, keyed by path. The icon (PNG) is added by exportZip.
 function genFiles(P) {
-  const a = P.app, t = targetsFor(P), slug = slugify(a.name), files = {};
+  const a = P.app, t = targetsFor(P), db = dbOf(P), slug = slugify(a.name), files = {}, deps = nodeDeps(P);
   const index = makeGen(P, 'web').html();
   files['index.html'] = index;
-  files['icon.svg'] = iconSvg(a);
-  files['manifest.json'] = JSON.stringify({
-    name: a.name, short_name: a.short || a.name, description: a.desc || undefined,
-    start_url: './', scope: './', display: 'standalone',
-    background_color: a.theme === 'dark' ? '#12151c' : '#ffffff', theme_color: a.accent || '#4f7cff',
-    icons: [
-      { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml' },
-      { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
-      { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-    ],
-  }, null, 2) + '\n';
-  if (a.offline !== false) {
-    files['sw.js'] = template('t-sw', {
-      NAME: a.name, CACHE: slug + '-' + hashText(index + JSON.stringify(a)),
-      FILES: JSON.stringify(['./', './index.html', './manifest.json', './icon.svg', './icon-192.png', './icon-512.png']),
-    });
+  if (t.pwa) {
+    files['manifest.json'] = JSON.stringify({
+      name: a.name, short_name: a.short || a.name, description: a.desc || undefined,
+      start_url: './', scope: './', display: 'standalone',
+      background_color: a.theme === 'dark' ? '#12151c' : '#ffffff', theme_color: a.accent || '#4f7cff',
+      icons: [{ src: 'icon.png', sizes: '192x192 512x512', type: 'image/png', purpose: 'any' }],
+    }, null, 2) + '\n';
+    if (t.offline) {
+      files['sw.js'] = template('t-sw', {
+        NAME: a.name, CACHE: slug + '-' + hashText(index + JSON.stringify(a)),
+        FILES: JSON.stringify(['./', './index.html', './manifest.json', './icon.png']),
+      });
+    }
   }
-  files['project.mpe.json'] = JSON.stringify(P, null, 2) + '\n';
-  files['.gitignore'] = 'server/data/\nserver/node_modules/\n' + (t.cli ? '*-data.json\n' : '');
+  if (t.project) files['project.mpe.json'] = JSON.stringify(P, null, 2) + '\n';
 
   if (t.cli) {
+    const direct = t.api && db.cliDirect;
     files['cli/app.js'] = `#!/usr/bin/env node
 // ${a.name}, in a terminal. Made with Mini PWA Engine.
 // The same state, data and actions as the web app; each page is printed as
 // text and its buttons and inputs become a numbered menu.
-//   node cli/app.js          (Node 18 or later)
+//   node cli/app.js          (Node 18 or later)${direct ? '\n// Server API data is read from the database directly, with the server\'s settings.' : ''}
 
 ${makeGen(P, 'node').core()}
 
@@ -2000,52 +2962,54 @@ function ask(question) {
 }
 main({ print: line => console.log(line), ask })
   .catch(error => { if (error.code !== 'EOF') console.error(error); })
-  .finally(() => rl.close());
+  .finally(() => {
+    rl.close();${direct ? '\n    store.close();' : ''}
+  });
 `;
   }
 
-  // Servers
-  files['server/web.js'] = template('t-web', { NAME: a.name });
-  files['server/lib/static.js'] = template('t-static');
-  if (t.python) files['server/web.py'] = template('t-py', { NAME: a.name });
+  if (t.node) files['server/server.js'] = nodeServer(P);
+  if (t.python) files['server/server.py'] = pyServer(P);
+  if (Object.keys(deps).length) {
+    files['package.json'] = JSON.stringify({
+      name: slug, version: '1.0.0', private: true, description: `${a.name}: servers and terminal app`,
+      scripts: { ...(t.node ? { start: 'node server/server.js' } : {}), ...(t.cli ? { cli: 'node cli/app.js' } : {}) },
+      engines: { node: '>=18' }, dependencies: deps,
+    }, null, 2) + '\n';
+  }
   if (t.nginx) {
     files['server/nginx.conf'] = template('t-nginx', {
       NAME: a.name, SLUG: slug,
-      API: t.api ? '\n    # The API is answered by the application server (node server/app.js).\n    location /api/ {\n        proxy_pass http://127.0.0.1:8080;\n        proxy_set_header Host $host;\n    }\n' : '',
+      API: t.api ? '\n    # The API is answered by the app\'s server (server/server.js or server.py).\n    location /api/ {\n        proxy_pass http://127.0.0.1:8080;\n        proxy_set_header Host $host;\n    }\n' : '',
     });
   }
-  if (t.api) {
-    files['server/lib/api.js'] = template('t-api');
-    files['server/lib/schema.js'] = schemaJs(P);
-    files['server/lib/hooks.js'] = hooksJs(P);
-    files['server/lib/store.js'] = template(t.db === 'sqlite' ? 't-store-sqlite' : t.db === 'postgres' ? 't-store-pg' : 't-store-json');
-    if (t.apiServer) files['server/api.js'] = template('t-apiserver', { NAME: a.name });
-    if (t.appServer) files['server/app.js'] = template('t-app', { NAME: a.name });
-    if (t.db === 'sqlite' || t.db === 'postgres') {
-      files['server/db/schema.sql'] = schemaSql(P, t.db);
-      files['server/db/seed.sql'] = seedSql(P, t.db);
-    }
-  }
-  const scripts = { start: t.appServer ? 'node app.js' : 'node web.js', web: 'node web.js' };
-  if (t.apiServer) scripts.api = 'node api.js';
-  if (t.cli) scripts.cli = 'node ../cli/app.js';
-  files['server/package.json'] = JSON.stringify({
-    name: slug, version: '1.0.0', private: true, description: `Servers for ${a.name}`,
-    scripts, engines: { node: t.db === 'sqlite' ? '>=22.13' : '>=18' },
-    dependencies: t.db === 'postgres' ? { pg: '^8.12.0' } : undefined,
-  }, null, 2) + '\n';
+  if (t.sql) files['server/schema.sql'] = schemaSql(P, db.kind, db.schema);
   if (t.docker) {
-    const main = t.appServer ? 'server/app.js' : 'server/web.js';
-    files['server/Dockerfile'] = `# Builds ${a.name} with its server. From the server/ folder: docker compose up --build
+    const pyOnly = !t.node && t.python;
+    const pyDeps = t.api ? { postgres: ' "psycopg[binary]"', mssql: ' pyodbc' }[db.kind] || '' : '';
+    files['server/Dockerfile'] = pyOnly
+      ? `# ${a.name} and its Python server. From the server/ folder: docker compose up --build
+FROM python:3.12-slim-bookworm
+WORKDIR /srv
+${db.kind === 'mssql' && t.api ? `RUN apt-get update && apt-get install -y curl gnupg unixodbc \\
+ && curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft.gpg \\
+ && echo "deb [signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/debian/12/prod bookworm main" > /etc/apt/sources.list.d/mssql.list \\
+ && apt-get update && ACCEPT_EULA=Y apt-get install -y msodbcsql18 && rm -rf /var/lib/apt/lists/*
+` : ''}${pyDeps ? `RUN pip install --no-cache-dir${pyDeps}\n` : ''}COPY . .
+ENV PORT=8080
+EXPOSE 8080
+CMD ["python3", "server/server.py"]
+`
+      : `# ${a.name} and its Node server. From the server/ folder: docker compose up --build
 FROM node:22-alpine
 WORKDIR /srv
 COPY . .
-${t.db === 'postgres' ? 'RUN cd server && npm install --omit=dev\n' : ''}ENV PORT=8080
+${Object.keys(deps).length ? 'RUN npm install --omit=dev\n' : ''}ENV PORT=8080
 EXPOSE 8080
-CMD ["node", "${main}"]
+CMD ["node", "server/server.js"]
 `;
-    files['.dockerignore'] = '.git\nserver/node_modules\nserver/data\n*-data.json\n';
-    const pg = t.db === 'postgres';
+    const pg = t.api && db.kind === 'postgres', ms = t.api && db.kind === 'mssql';
+    const env = pg ? { DATABASE_URL: 'postgres://app:app@db:5432/app' } : ms ? { DB_HOST: 'db', DB_NAME: 'master', DB_USER: 'sa', [envName(db.passwordEnv, 'DB_PASSWORD')]: 'Local-dev-1' } : null;
     files['server/docker-compose.yml'] = `services:
   app:
     build:
@@ -2053,20 +3017,29 @@ CMD ["node", "${main}"]
       dockerfile: server/Dockerfile
     ports:
       - "8080:8080"
-${pg ? '    environment:\n      DATABASE_URL: postgres://app:app@db:5432/app\n    depends_on:\n      - db\n' : t.api ? '    volumes:\n      - appdata:/srv/server/data\n' : ''}${pg ? `  db:
+${env ? '    environment:\n' + Object.entries(env).map(([k, v]) => `      ${k}: ${v}`).join('\n') + '\n    depends_on:\n      - db\n' : t.api ? '    volumes:\n      - appdata:/srv/server/data\n' : ''}${pg ? `  db:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: app
       POSTGRES_DB: app
-    ports:
-      - "5432:5432"
     volumes:
-      - ./db:/docker-entrypoint-initdb.d:ro
       - pgdata:/var/lib/postgresql/data
-` : ''}${pg ? 'volumes:\n  pgdata: {}\n' : t.api ? 'volumes:\n  appdata: {}\n' : ''}`;
+volumes:
+  pgdata: {}
+` : ms ? `  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: Local-dev-1
+` : t.api ? 'volumes:\n  appdata: {}\n' : ''}`;
   }
-  files['README.md'] = genReadme(P, files);
+  const ignore = [];
+  if (t.api && ['json', 'sqlite'].includes(db.kind) && (t.node || t.python || (t.cli && db.cliDirect))) ignore.push('server/data/');
+  if (Object.keys(deps).length) ignore.push('node_modules/');
+  if (t.cli && P.sources.some(x => x.kind === 'local')) ignore.push('*-data.json');
+  if (ignore.length) files['.gitignore'] = ignore.join('\n') + '\n';
+  if (t.node || t.python || t.nginx || t.docker || t.cli) files['README.md'] = genReadme(P, files);
   return files;
 }
 
@@ -2144,11 +3117,12 @@ function download(name, data, type) {
 async function exportZip() {
   const files = genFiles(P), slug = slugify(P.app.name), enc = new TextEncoder();
   const entries = Object.entries(files).map(([name, text]) => ({ name: slug + '/' + name, data: enc.encode(text) }));
-  try {
-    entries.push({ name: slug + '/icon-192.png', data: await iconPng(P.app, 192) });
-    entries.push({ name: slug + '/icon-512.png', data: await iconPng(P.app, 512) });
-  } catch (error) {
-    toast(error.message);
+  if (targetsFor(P).pwa) {
+    try {
+      entries.push({ name: slug + '/icon.png', data: await iconPng(P.app, 512) });
+    } catch (error) {
+      toast(error.message);
+    }
   }
   entries.sort((x, y) => x.name.localeCompare(y.name));
   download(slug + '.zip', makeZip(entries));
@@ -2164,13 +3138,30 @@ let pageId = null;
 
 function blankProject() {
   return {
-    v: 1, seq: 1,
+    v: 1, seq: 1, uid: newUid(),
     app: { name: 'My App', short: 'App', desc: '', accent: '#4f7cff', theme: 'auto', width: 720, icon: '✦', iconBg: '#4f7cff', iconFg: '#ffffff', offline: true, nav: true, apiBase: './api' },
     state: [], sources: [],
     pages: [{ id: 'p1', name: 'Home', path: 'home', root: { id: 'n1', type: 'stack', props: {}, style: {}, children: [], on: {} } }],
     css: '', js: '',
-    targets: { cli: true, python: false, nginx: false, docker: false, api: true, app: true, db: 'json' },
+    targets: { pwa: true, project: false, node: false, python: false, nginx: false, docker: false, sql: false, cli: false },
+    db: { ...DB_DEFAULTS },
   };
+}
+
+const newUid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+// Brings projects saved by earlier versions of the engine up to date.
+function upgrade(p) {
+  p.uid ||= newUid();
+  const t = p.targets || {};
+  if ('app' in t || 'api' in t || typeof t.db === 'string') {
+    // Before one-file servers: database kind lived in targets, and more files were on by default.
+    p.db = { ...DB_DEFAULTS, ...p.db, kind: typeof t.db === 'string' ? t.db : 'json' };
+    p.targets = { pwa: true, project: false, node: false, python: !!t.python, nginx: !!t.nginx, docker: !!t.docker, sql: false, cli: false };
+  }
+  p.targets ||= blankProject().targets;
+  p.db = { ...DB_DEFAULTS, ...p.db };
+  return p;
 }
 
 // Builds a starter project. N(type, props, children, on) makes a component.
@@ -2259,6 +3250,61 @@ const STARTERS = [
       N('list', { source: 'posts', layout: 'stack', empty: 'Loading…' }, [
         N('heading', { text: '{{item.title}}', level: 3 }),
       ], { itemclick: [{ kind: 'set', target: 'open', expr: 'item' }, { kind: 'go', page: 'p2' }] }),
+    ];
+  }) },
+  { id: 'platformer', name: 'Platformer', desc: 'A Canvas game: run, jump, collect coins, reach the flag. Keyboard or touch.', make: () => starter((p, N) => {
+    Object.assign(p.app, { name: 'Platformer', short: 'Platformer', desc: 'A small platform game made with a Canvas component.', icon: '▲', accent: '#ff7043', iconBg: '#ff7043', theme: 'dark' });
+    p.state.push({ name: 'score', type: 'number', initial: '0' }, { name: 'best', type: 'number', initial: '0' });
+    p.pages[0].root.children = [
+      N('heading', { text: 'Platformer', level: 2 }),
+      N('canvas', { ref: 'game', width: 320, height: 176, pixel: true, fit: true, setup: "// A level drawn with letters: # ground, = platform, o coin, ^ spikes,\n// P where you start, F the flag. Each letter is a 16px tile.\ngame.level = [\n  '                                                            ',\n  '                                                            ',\n  '                                                      F     ',\n  '                                                    o       ',\n  '                                   o o o          =====     ',\n  '                ooo              =======                    ',\n  '              =======     o                      ^^         ',\n  '    o                   ====          ^^     ======         ',\n  ' P        ^^                     ######################     ',\n  '############  #########   ###########################  #####',\n  '############  #########   ###########################  #####',\n];\ngame.T = 16;\ngame.at = (x, y) => (game.level[Math.floor(y / game.T)] || '')[Math.floor(x / game.T)] || ' ';\ngame.solid = (x, y) => '#='.includes(game.at(x, y));\ngame.reset = () => {\n  game.coins = new Set();\n  game.level.forEach((row, y) => [...row].forEach((c, x) => {\n    if (c === 'o') game.coins.add(x + ',' + y);\n    if (c === 'P') game.start = { x: x * game.T, y: y * game.T + 2 };\n  }));\n  game.p = { x: game.start.x, y: game.start.y, vx: 0, vy: 0, w: 10, h: 14, ground: false, face: 1 };\n  game.cam = 0;\n  game.won = false;\n  S.score = 0;\n  render();\n};\ngame.reset();", frame: "const p = game.p, T = game.T, W = canvas.width, H = canvas.height;\n\n// Controls: arrows or A/D to run, Space, W or Up to jump. On a touch screen,\n// hold the left or right third to run and tap the middle to jump.\nlet left = input.keys.has('arrowleft') || input.keys.has('a');\nlet right = input.keys.has('arrowright') || input.keys.has('d');\nlet jump = input.pressed('arrowup') || input.pressed('w') || input.pressed(' ');\nfor (const t of input.pointers.values()) {\n  if (t.x < W / 3) left = true;\n  else if (t.x > W * 2 / 3) right = true;\n  else if (input.pressed('pointer')) jump = true;\n}\n\nif (!game.won) {\n  const dir = right - left;\n  if (dir) p.face = dir;\n  p.vx += (dir * 110 - p.vx) * Math.min(1, dt * 12);\n  if (jump && p.ground) p.vy = -235;\n  p.vy = Math.min(p.vy + 620 * dt, 300);\n\n  // Move across, then down, stopping at solid tiles.\n  const hits = (x, y) => game.solid(x, y) || game.solid(x + p.w - 1, y) || game.solid(x, y + p.h - 1) || game.solid(x + p.w - 1, y + p.h - 1);\n  const nx = p.x + p.vx * dt;\n  if (!hits(nx, p.y)) p.x = Math.max(0, nx);\n  else p.vx = 0;\n  const ny = p.y + p.vy * dt;\n  p.ground = false;\n  if (!hits(p.x, ny)) p.y = ny;\n  else {\n    if (p.vy > 0) {\n      p.ground = true;\n      p.y = Math.floor((ny + p.h - 1) / T) * T - p.h;\n    } else p.y = Math.floor(ny / T) * T + T;\n    p.vy = 0;\n  }\n\n  for (const key of game.coins) {\n    const [cx, cy] = key.split(',').map(Number);\n    if (Math.abs(cx * T + 8 - (p.x + p.w / 2)) < 10 && Math.abs(cy * T + 8 - (p.y + p.h / 2)) < 12) {\n      game.coins.delete(key);\n      S.score++;\n      S.best = Math.max(S.best, S.score);\n      render();\n    }\n  }\n  if (game.at(p.x + p.w / 2, p.y + p.h - 2) === '^' || p.y > game.level.length * T + 40) game.reset();\n  if (game.at(p.x + p.w / 2, p.y + p.h / 2) === 'F') game.won = true;\n}\nconst end = game.level[0].length * T - W;\ngame.cam += (Math.max(0, Math.min(p.x - W / 2, end)) - game.cam) * Math.min(1, dt * 8);\n\n// Draw: sky, hills that move slower than the level, the level, coins, you.\nctx.fillStyle = '#8fd3ff';\nctx.fillRect(0, 0, W, H);\nctx.fillStyle = '#73c27a';\nfor (let i = -1; i < 6; i++) {\n  ctx.beginPath();\n  ctx.arc(i * 90 - (game.cam * 0.3) % 90, H, 60, Math.PI, 0);\n  ctx.fill();\n}\nctx.save();\nctx.translate(-Math.round(game.cam), 0);\ngame.level.forEach((row, y) => [...row].forEach((c, x) => {\n  const X = x * T, Y = y * T;\n  if (X + T < game.cam || X > game.cam + W) return;\n  if (c === '#') {\n    ctx.fillStyle = '#8b5a2b';\n    ctx.fillRect(X, Y, T, T);\n    if (!game.solid(X, Y - 1)) {\n      ctx.fillStyle = '#4caf50';\n      ctx.fillRect(X, Y, T, 4);\n    }\n  }\n  if (c === '=') {\n    ctx.fillStyle = '#c98b4b';\n    ctx.fillRect(X, Y, T, 6);\n  }\n  if (c === '^') {\n    ctx.fillStyle = '#e8e8e8';\n    ctx.beginPath();\n    ctx.moveTo(X, Y + T);\n    ctx.lineTo(X + T / 2, Y + 4);\n    ctx.lineTo(X + T, Y + T);\n    ctx.fill();\n  }\n  if (c === 'F') {\n    ctx.fillStyle = '#333';\n    ctx.fillRect(X + 7, Y - 16, 2, 32);\n    ctx.fillStyle = '#ff5252';\n    ctx.fillRect(X + 9, Y - 16, 10, 7);\n  }\n}));\nctx.fillStyle = '#ffd54a';\nfor (const key of game.coins) {\n  const [cx, cy] = key.split(',').map(Number);\n  ctx.beginPath();\n  ctx.arc(cx * T + 8, cy * T + 8 + Math.sin(performance.now() / 200 + cx) * 2, 4, 0, Math.PI * 2);\n  ctx.fill();\n}\nctx.fillStyle = '#ff7043';\nctx.fillRect(Math.round(p.x), Math.round(p.y), p.w, p.h);\nctx.fillStyle = '#fff';\nctx.fillRect(Math.round(p.x) + (p.face > 0 ? 6 : 2), Math.round(p.y) + 3, 2, 3);\nctx.restore();\n\nif (game.won) {\n  ctx.fillStyle = '#000a';\n  ctx.fillRect(0, H / 2 - 20, W, 40);\n  ctx.fillStyle = '#fff';\n  ctx.font = '12px system-ui, sans-serif';\n  ctx.textAlign = 'center';\n  ctx.fillText('You made it, with ' + S.score + ' coins! Press Restart to play again.', W / 2, H / 2 + 4);\n}" }),
+      N('row', { justify: 'between' }, [
+        N('text', { text: 'Coins: {{score}}   ·   Best: {{best}}' }),
+        N('button', { label: 'Restart', variant: 'secondary' }, null, { click: [{ kind: 'js', code: 'GAMES.game.reset();' }] }),
+      ]),
+      N('text', { text: 'Arrow keys or A/D to run; Space, W or Up to jump. On a touch screen, hold the left or right third to run and tap the middle to jump.', muted: true }),
+    ];
+  }) },
+  { id: 'mini', name: 'Mini Engine', desc: 'A tiny page builder, made only from this engine\'s components. TUTORIAL.md builds it step by step.', make: () => starter((p, N) => {
+    Object.assign(p.app, { name: 'Mini Engine', short: 'Mini Engine', desc: 'A tiny page builder made with Mini PWA Engine.', icon: '⚙', accent: '#7a5cff', iconBg: '#7a5cff', width: 1100 });
+    p.state.push({ name: 'appName', type: 'text', initial: 'My page' }, { name: 'selected', type: 'text', initial: '' });
+    p.sources.push(
+      { name: 'kinds', kind: 'memory', fields: [{ name: 'kind', type: 'text' }, { name: 'icon', type: 'text' }, { name: 'sample', type: 'text' }],
+        seed: [{ kind: 'heading', icon: 'H', sample: 'A heading' }, { kind: 'text', icon: '¶', sample: 'Some text.' }, { kind: 'button', icon: '⏺', sample: 'A button' },
+          { kind: 'image', icon: '◩', sample: 'https://picsum.photos/480/200' }, { kind: 'divider', icon: '—', sample: '' }] },
+      { name: 'parts', kind: 'local', fields: [{ name: 'kind', type: 'text' }, { name: 'text', type: 'text' }, { name: 'color', type: 'text' }],
+        seed: [{ kind: 'heading', text: 'Hello', color: '' }, { kind: 'text', text: 'This page was made with a page builder that was made with Mini PWA Engine.', color: '' }] });
+    p.js = "// The mini engine's code generator: it turns the parts into HTML. The preview\n// (an HTML component showing {{ preview(parts) }}) and the download both use it.\nconst esc = s => String(s ?? '').replace(/[&<>\"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;' }[c]));\n\nfunction partHtml(part) {\n  const style = part.color ? ` style=\"color: ${esc(part.color)}\"` : '';\n  if (part.kind === 'heading') return `<h2${style}>${esc(part.text)}</h2>`;\n  if (part.kind === 'button') return `<button${style}>${esc(part.text)}</button>`;\n  if (part.kind === 'image') return `<img src=\"${esc(part.text)}\" alt=\"\" style=\"max-width: 100%\">`;\n  if (part.kind === 'divider') return '<hr>';\n  return `<p${style}>${esc(part.text)}</p>`;\n}\n\nfunction preview(parts) {\n  return parts.map(partHtml).join('\\n') || '<p style=\"color: #888\">Add parts from the left.</p>';\n}\n\n// Export: the parts as a page of their own.\nfunction downloadPage() {\n  const html = `<!doctype html>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>${esc(S.appName)}</title>\n<body style=\"font-family: system-ui, sans-serif; max-width: 640px; margin: 2em auto; padding: 0 1em\">\n${preview(S.parts)}\n</body>\n`;\n  const link = document.createElement('a');\n  link.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));\n  link.download = (S.appName || 'page').replace(/\\W+/g, '-').toLowerCase() + '.html';\n  link.click();\n}";
+    const card = (title, w, kids) => Object.assign(N('card', {}, [N('heading', { text: title, level: 4 }), ...kids]), { style: { w, padding: '12' } });
+    p.pages[0].root.children = [
+      N('row', { wrap: false }, [
+        Object.assign(N('heading', { text: '⚙ Mini Engine', level: 3 }), { style: { w: 'fill' } }),
+        Object.assign(N('input', { label: '', placeholder: 'Page name', bind: 'appName' }), { style: { w: '180' } }),
+        N('button', { label: 'Download page' }, null, { click: [{ kind: 'js', code: 'downloadPage();' }] }),
+      ]),
+      N('row', { align: 'start' }, [
+        card('Add', '200', [
+          N('list', { source: 'kinds', layout: 'stack', plain: true }, [
+            N('button', { label: '{{item.icon}}  {{item.kind}}', variant: 'secondary' }, null,
+              { click: [{ kind: 'add', source: 'parts', values: { kind: 'item.kind', text: 'item.sample', color: "''" } }] }),
+          ]),
+          N('heading', { text: 'Parts', level: 4 }),
+          N('list', { source: 'parts', empty: 'No parts yet.' }, [
+            N('text', { text: '{{item.id === selected ? "▸ " : ""}}{{item.kind}}: {{item.text}}' }),
+          ], { itemclick: [{ kind: 'set', target: 'selected', expr: 'item.id' }] }),
+        ]),
+        card('Preview', 'fill', [N('html', { html: '{{ preview(parts) }}' })]),
+        card('Inspect', '220', [
+          N('list', { source: 'parts', filter: 'item.id === selected', layout: 'stack', empty: 'Click a part under Parts to change it.' }, [
+            N('input', { label: 'Text', bind: 'item.text' }),
+            N('select', { label: 'Color', options: '|Default\n#d33|Red\n#1a8a5a|Green\n#2f62d0|Blue', bind: 'item.color' }),
+            N('row', {}, [
+              N('button', { label: '↑ Up', variant: 'secondary' }, null, { click: [{ kind: 'js', code: "const i = S.parts.indexOf(item);\nif (i > 0) {\n  S.parts.splice(i, 1);\n  S.parts.splice(i - 1, 0, item);\n  await update('parts', item, {}); // saves the new order\n}" }] }),
+              N('button', { label: 'Delete', variant: 'danger' }, null, { click: [{ kind: 'remove' }, { kind: 'set', target: 'selected', expr: "''" }] }),
+            ]),
+          ]),
+        ]),
+      ]),
     ];
   }) },
   { id: 'blank', name: 'Blank', desc: 'An empty page.', make: () => {
@@ -2363,6 +3409,25 @@ function moveNode(id, targetId, pos) {
   touch(null, true);
 }
 
+// From the preview's resize handles: '' goes back to automatic, null leaves it.
+function resizeNode(id, w, h) {
+  const n = locate(id)?.node;
+  if (!n) return;
+  n.style ||= {};
+  if (w != null) n.style.w = String(w);
+  if (h != null) n.style.h = String(h);
+  touch(null, true);
+}
+
+// From dragging a pinned part in the preview.
+function nudgeNode(id, dx, dy) {
+  const n = locate(id)?.node, pin = n && PINS[n.style?.pin];
+  if (!pin || (!dx && !dy)) return;
+  if (pin[0] !== 'f') n.style.ox = String((Number(n.style.ox) || 0) + dx);
+  if (pin[1] !== 'f') n.style.oy = String((Number(n.style.oy) || 0) + dy);
+  touch(null, true);
+}
+
 function reId(node) {
   walk(node, n => { n.id = 'n' + (++P.seq); });
   return node;
@@ -2430,13 +3495,183 @@ function touch(key, structural) {
   schedulePreview();
 }
 
-function loadProject(p) {
-  P = p;
+function loadProject(p, history) {
+  P = upgrade(p);
+  loadVcs();
+  if (history && history.commits) {
+    vcs = { head: history.head || vcs.head, branches: { ...vcs.branches, ...history.branches }, commits: { ...vcs.commits, ...history.commits } };
+    saveVcs();
+  }
   sel = null;
   pageId = P.pages[0].id;
   resetHistory();
   persist();
   renderAll();
+}
+
+// =============================================================================
+// History: versions of the project (commits) on branches, kept in this
+// browser. Save puts them in the project file too.
+// =============================================================================
+
+let vcs = null;
+const vcsKey = () => 'mpe:vcs:' + P.uid;
+const emptyVcs = () => ({ head: 'main', branches: { main: null }, commits: {} });
+
+function loadVcs() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(vcsKey())); } catch {}
+  vcs = saved && saved.branches && saved.commits ? saved : emptyVcs();
+}
+
+function saveVcs() {
+  try {
+    localStorage.setItem(vcsKey(), JSON.stringify(vcs));
+  } catch (error) {
+    toast("Couldn't keep the history in this browser (" + error.message + '). Save the project to keep it in a file.');
+  }
+}
+
+// What changed between two versions of a project, as lines for people.
+function diffProjects(a, b) {
+  const out = [], put = (kind, text) => out.push({ kind, text });
+  const same = (x, y) => JSON.stringify(x) === JSON.stringify(y);
+  const keysDiff = (x = {}, y = {}) => [...new Set([...Object.keys(x), ...Object.keys(y)])].filter(k => !same(x[k], y[k]));
+  const app = keysDiff(a.app, b.app);
+  if (app.length) put('mod', 'App settings: ' + app.join(', '));
+  if ((a.css || '') !== (b.css || '')) put('mod', 'Custom CSS');
+  if ((a.js || '') !== (b.js || '')) put('mod', 'Custom JavaScript');
+  if (!same(a.targets, b.targets)) put('mod', 'Export settings');
+  if (!same(a.db, b.db)) put('mod', 'Server database settings');
+  for (const [key, label] of [['state', 'State'], ['sources', 'Data source']]) {
+    const A = new Map((a[key] || []).map(x => [x.name, x])), B = new Map((b[key] || []).map(x => [x.name, x]));
+    for (const [name] of A) if (!B.has(name)) put('del', `${label} ${name}`);
+    for (const [name, x] of B) {
+      if (!A.has(name)) put('add', `${label} ${name}`);
+      else if (!same(A.get(name), x)) put('mod', `${label} ${name}: ${keysDiff(A.get(name), x).join(', ')}`);
+    }
+  }
+  const pagesA = new Map(a.pages.map(p => [p.id, p])), pagesB = new Map(b.pages.map(p => [p.id, p]));
+  for (const [id, p] of pagesA) if (!pagesB.has(id)) put('del', `Page ${p.name}`);
+  for (const [id, p] of pagesB) {
+    if (!pagesA.has(id)) put('add', `Page ${p.name}`);
+    else if (pagesA.get(id).name !== p.name || pagesA.get(id).path !== p.path) put('mod', `Page ${pagesA.get(id).name}: name or address`);
+  }
+  const flat = proj => {
+    const m = new Map();
+    for (const page of proj.pages) walk(page.root, (n, parent) => m.set(n.id, { n, page: page.name, parent: parent && parent.id, at: parent ? parent.children.indexOf(n) : 0 }));
+    return m;
+  };
+  const A = flat(a), B = flat(b);
+  const label = n => (TYPES[n.type] ? nodeLabel(n) : n.type) + (n.props && nodeSummary(n) ? ' ' + JSON.stringify(String(nodeSummary(n)).slice(0, 30)) : '');
+  for (const [id, x] of A) if (!B.has(id)) put('del', `${label(x.n)} on ${x.page}`);
+  for (const [id, y] of B) {
+    const x = A.get(id);
+    if (!x) { put('add', `${label(y.n)} on ${y.page}`); continue; }
+    const strip = ({ children, ...rest }) => rest;
+    const changed = keysDiff(strip(x.n), strip(y.n)).flatMap(k => (k === 'props' || k === 'style' || k === 'on' ? keysDiff(x.n[k], y.n[k]).map(f => (k === 'props' ? f : k + '.' + f)) : [k]));
+    if (changed.length) put('mod', `${label(y.n)}: ${changed.join(', ')}`);
+    if (x.parent !== y.parent || x.at !== y.at) put('mod', `${label(y.n)}: moved`);
+  }
+  return out;
+}
+
+function changeList(changes) {
+  if (!changes.length) return el('p', { class: 'muted small' }, 'No changes.');
+  const sign = { add: '+ ', del: '− ', mod: '~ ' };
+  return el('ul', { class: 'changes' }, changes.map(c => el('li', { class: c.kind }, sign[c.kind] + c.text)));
+}
+
+function headSnapshot() {
+  const id = vcs.branches[vcs.head];
+  return id && vcs.commits[id] ? JSON.parse(vcs.commits[id].snap) : null;
+}
+
+function historyPanel() {
+  const base = headSnapshot(), changes = base ? diffProjects(base, P) : null;
+  const out = [el('p', { class: 'muted small' }, 'Commit to remember a version of the project. Compare any version with now, go back to it (Undo still works), or start a branch to try something without losing the main line. Kept in this browser; Save puts it in the file too.')];
+  const branch = el('select', { 'aria-label': 'Branch' }, Object.keys(vcs.branches).map(b => el('option', { value: b }, b)));
+  branch.value = vcs.head;
+  branch.addEventListener('change', () => switchBranch(branch.value));
+  out.push(el('div', { class: 'inline', style: 'margin-bottom: 8px' }, el('span', { class: 'muted small' }, 'Branch'), branch,
+    el('button', { style: 'white-space: nowrap', onclick: () => newBranch(vcs.branches[vcs.head]) }, '+ Branch')));
+  out.push(el('h3', { class: 'sec' }, base ? `Changes since the last commit (${changes.length})` : 'Nothing committed on ' + vcs.head + ' yet'));
+  if (changes) out.push(changeList(changes.slice(0, 60)), changes.length > 60 ? el('p', { class: 'muted small' }, `…and ${changes.length - 60} more`) : null);
+  const message = el('input', { placeholder: base ? 'What changed?' : 'First version', 'aria-label': 'Commit message' });
+  message.addEventListener('keydown', e => { if (e.key === 'Enter') commitVersion(message.value); });
+  out.push(el('div', { class: 'inline', style: 'margin: 6px 0 4px' }, message,
+    el('button', { class: 'primary', disabled: base && !changes.length, onclick: () => commitVersion(message.value) }, 'Commit')));
+
+  out.push(el('h3', { class: 'sec', style: 'margin-top: 16px' }, 'Commits on ' + vcs.head));
+  const list = el('ul', { class: 'commits' });
+  const tips = Object.entries(vcs.branches).reduce((m, [b, id]) => (id ? m.set(id, [...(m.get(id) || []), b]) : m), new Map());
+  for (let c = vcs.commits[vcs.branches[vcs.head]]; c; c = vcs.commits[c.parent]) {
+    const commit = c;
+    list.append(el('li', { class: commit.id === vcs.branches[vcs.head] ? 'head' : null },
+      el('div', {}, commit.msg, (tips.get(commit.id) || []).filter(b => b !== vcs.head).map(b => el('span', { class: 'muted small' }, '  [' + b + ']'))),
+      el('div', { class: 'when' }, new Date(commit.time).toLocaleString()),
+      el('div', { class: 'acts' },
+        el('button', { class: 'link', onclick: () => showDiff(`"${commit.msg}" compared with now`, diffProjects(JSON.parse(commit.snap), P)) }, 'Compare with now'),
+        el('button', { class: 'link', onclick: () => restoreVersion(commit) }, 'Go back to this'),
+        el('button', { class: 'link', onclick: () => newBranch(commit.id) }, 'Branch from here'))));
+  }
+  out.push(list.children.length ? list : el('p', { class: 'muted small' }, 'No commits yet.'));
+  return out;
+}
+
+function commitVersion(message) {
+  const snap = JSON.stringify(P);
+  const id = hashText(snap + Date.now() + Math.random());
+  vcs.commits[id] = { id, parent: vcs.branches[vcs.head], msg: message.trim() || 'Changes', time: Date.now(), snap };
+  vcs.branches[vcs.head] = id;
+  saveVcs();
+  toast('Committed to ' + vcs.head);
+  renderLeft();
+}
+
+// Replaces the project with a saved version, as an edit (so Undo brings it back).
+function replaceProject(p) {
+  const uid = P.uid;
+  P = upgrade(p);
+  P.uid = uid;
+  if (!locate(sel)) sel = null;
+  if (!P.pages.some(pg => pg.id === pageId)) pageId = P.pages[0].id;
+  commit();
+  renderAll();
+}
+
+function restoreVersion(commit) {
+  replaceProject(JSON.parse(commit.snap));
+  toast(`Back to "${commit.msg}". Undo returns to where you were; Commit to keep it.`);
+}
+
+function switchBranch(name) {
+  const base = headSnapshot();
+  if (base && diffProjects(base, P).length && !confirm(`Switch to ${name}? Changes you haven't committed on ${vcs.head} will be replaced (Undo still has them).`)) { renderLeft(); return; }
+  vcs.head = name;
+  saveVcs();
+  const tip = vcs.commits[vcs.branches[name]];
+  if (tip) replaceProject(JSON.parse(tip.snap));
+  else renderLeft();
+}
+
+function newBranch(fromId) {
+  const name = (prompt('Name for the new branch:', 'try-' + (Object.keys(vcs.branches).length)) || '').trim();
+  if (!name) return;
+  if (!/^[\w.-]{1,40}$/.test(name) || vcs.branches[name] !== undefined) return toast('Branch names: letters, digits, - _ and ., not already used.');
+  vcs.branches[name] = fromId || null;
+  vcs.head = name;
+  saveVcs();
+  const tip = vcs.commits[fromId];
+  if (tip && tip.id !== Object.values(vcs.branches)[0] && JSON.stringify(P) !== tip.snap) replaceProject(JSON.parse(tip.snap));
+  else renderLeft();
+  toast('On branch ' + name);
+}
+
+function showDiff(title, changes) {
+  $('diffTitle').textContent = title;
+  $('diffBody').replaceChildren(changeList(changes));
+  $('diffDlg').showModal();
 }
 
 // =============================================================================
@@ -2570,18 +3805,25 @@ let dragType = null, dragId = null;
 function renderLeft() {
   for (const b of $('leftTabs').children) b.setAttribute('aria-selected', String(b.dataset.tab === leftTab));
   const body = $('leftBody');
-  body.replaceChildren(...({ add: addPanel, layers: layersPanel, pages: pagesPanel, data: dataPanel, app: appPanel }[leftTab])());
+  body.replaceChildren(...({ add: addPanel, layers: layersPanel, pages: pagesPanel, data: dataPanel, app: appPanel, history: historyPanel }[leftTab])().filter(Boolean));
 }
 
 function addPanel() {
-  const out = [el('p', { class: 'muted small' }, 'Click to add after the selected part (or inside it, if it holds others). Drag onto Layers to place exactly.')];
+  const out = [el('p', { class: 'muted small' }, 'Click to add after the selected part (or inside it, if it holds others), or drag onto the preview or Layers to place it exactly.')];
   for (const g of ['Layout', 'Content', 'Input', 'Data']) {
     out.push(el('h3', { class: 'sec' }, g));
     out.push(el('div', { class: 'palette' }, Object.entries(TYPES).filter(([, T]) => T.g === g).map(([type, T]) =>
       el('button', {
         draggable: 'true', title: T.tip || T.l,
         onclick: () => insertNode(type, sel),
-        ondragstart: e => { dragType = type; dragId = null; e.dataTransfer.setData('text/plain', type); e.dataTransfer.effectAllowed = 'copy'; },
+        ondragstart: e => {
+          dragType = type;
+          dragId = null;
+          e.dataTransfer.setData('text/plain', type);
+          e.dataTransfer.setData('application/x-mpe', type);
+          e.dataTransfer.effectAllowed = 'copyMove';
+        },
+        ondragend: () => { dragType = dragId = null; },
       }, el('b', {}, T.i), T.l))));
   }
   out.push(el('h3', { class: 'sec' }, 'Layers'));
@@ -2590,7 +3832,7 @@ function addPanel() {
 }
 
 function layersPanel() {
-  return [el('p', { class: 'muted small' }, 'Drag to reorder. Drop on the middle of a Stack, Row, Card or List to put it inside.'), layersTree()];
+  return [el('p', { class: 'muted small' }, 'Drag to reorder, here or in the preview. Drop on the middle of a Stack, Row, Grid, Card or List to put it inside.'), layersTree()];
 }
 
 function nodeSummary(n) {
@@ -2606,7 +3848,14 @@ function layersTree() {
     const li = el('li', {
       class: n.id === sel ? 'on' : null, style: `--d:${depth}`, 'data-id': n.id, draggable: depth ? 'true' : null,
       onclick: () => select(n.id),
-      ondragstart: e => { dragId = n.id; dragType = null; e.dataTransfer.setData('text/plain', n.id); e.dataTransfer.effectAllowed = 'move'; },
+      ondragstart: e => {
+        dragId = n.id;
+        dragType = null;
+        e.dataTransfer.setData('text/plain', n.id);
+        e.dataTransfer.setData('application/x-mpe', 'move:' + n.id);
+        e.dataTransfer.effectAllowed = 'copyMove';
+      },
+      ondragend: () => { dragType = dragId = null; },
     }, el('span', { class: 'ic' }, T.i), el('span', { class: 'nm' }, depth ? n.name || T.l : 'Page: ' + page.name),
     el('span', { class: 'hint' }, depth ? nodeSummary(n) : ''));
     ul.append(li);
@@ -2731,7 +3980,58 @@ function dataPanel() {
     P.sources.push({ name: 'items' + (n > 1 ? n : ''), kind: 'local', fields: [{ name: 'title', type: 'text' }], seed: [], url: '', path: '', writable: false });
     touch(null, true);
   } }, '+ Data source'));
+  out.push(el('h3', { class: 'sec', style: 'margin-top: 18px' }, 'Server database'));
+  out.push(apiSources(P).length ? databaseBox()
+    : el('p', { class: 'muted small' }, 'Where the generated server keeps "Server API" data: a JSON file, SQLite, PostgreSQL or SQL Server. Set a data source to Server API to choose.'));
   return out;
+}
+
+// Where the generated server keeps Server API data, and how it connects.
+function databaseBox() {
+  P.db = dbOf(P);
+  const db = P.db, kind = DB_KINDS.find(k => k[0] === db.kind) || DB_KINDS[0];
+  const box = el('div', { class: 'box' },
+    field('Kind', selectCtl(db, 'kind', DB_KINDS.map(k => [k[0], k[1]]), { onChange: v => {
+      if (v === 'postgres' && !db.user) db.user = 'app';
+      if (v === 'mssql' && !db.user) db.user = 'sa';
+    } }), kind[2]));
+  if (db.kind === 'postgres' || db.kind === 'mssql') {
+    const ms = db.kind === 'mssql', win = ms && db.auth === 'windows';
+    const sum = el('code', { class: 'mono small', style: 'word-break: break-all' }), upd = () => { sum.textContent = connectionSummary(db); };
+    upd();
+    if (ms) box.append(field('Sign in with', selectCtl(db, 'auth', [['sql', 'A SQL Server login'], ['windows', 'My Windows account (trusted connection)']]),
+      win ? 'No password: the server signs in as the Windows user who runs it. Needs Windows and Microsoft\'s ODBC driver; works with SQL Server on the same network.' : null));
+    box.append(
+      el('div', { class: 'r', style: 'display: grid; grid-template-columns: 1fr 80px; gap: 6px' },
+        field('Server', textCtl(db, 'host', { mono: true, ph: 'localhost', key: 'dbhost', onChange: upd })),
+        field('Port', textCtl(db, 'port', { mono: true, ph: ms ? '1433' : '5432', key: 'dbport', onChange: upd }))));
+    if (ms) box.append(field('Instance', textCtl(db, 'instance', { mono: true, ph: 'blank for the default, or SQLEXPRESS', key: 'dbinst', onChange: upd }), 'With an instance name the port is found by the SQL Browser service.'));
+    box.append(field('Database', textCtl(db, 'name', { mono: true, ph: 'app', key: 'dbname', onChange: upd }), ms ? 'It must exist already; the server makes the tables.' : null));
+    if (ms) box.append(field('Schema', textCtl(db, 'schema', { mono: true, ph: 'dbo', key: 'dbschema' })));
+    if (!win) {
+      box.append(field('User', textCtl(db, 'user', { mono: true, ph: ms ? 'sa' : 'app', key: 'dbuser', onChange: upd })),
+        field('Password comes from the environment variable', textCtl(db, 'passwordEnv', { mono: true, ph: 'DB_PASSWORD', key: 'dbpw', onChange: upd }),
+          'Passwords are never saved in the project or the export.'));
+    }
+    if (ms) {
+      if (win) box.append(field('ODBC driver', textCtl(db, 'driver', { mono: true, ph: 'ODBC Driver 18 for SQL Server', key: 'dbdriver', onChange: upd })));
+      box.append(checkCtl(db, 'encrypt', 'Encrypt the connection', false), checkCtl(db, 'trustCert', 'Trust the server\'s certificate (self-signed, local servers)', false));
+    } else box.append(checkCtl(db, 'ssl', 'Require SSL', false));
+    box.append(el('div', { class: 'f' }, el('span', {}, 'Connects to'), sum));
+  }
+  box.append(el('h3', { class: 'sec' }, 'Terminal version'),
+    selectCtl(db, 'cliDirect', [[false, 'Goes through the server\'s API'], [true, 'Connects to the database directly (no API server)']], { structural: false }),
+    el('p', { class: 'muted small', style: 'margin: 4px 0 0' }, 'A browser can\'t open a database connection, so the web app always talks to the server. The terminal version (Export › Terminal version) can skip it' +
+      (db.kind === 'mssql' ? ', and with Windows sign-in it uses your own Windows account.' : '.')));
+  return box;
+}
+
+function connectionSummary(db) {
+  const host = db.host || 'localhost';
+  if (db.kind === 'postgres') return `postgres://${db.user || 'app'}:$${envName(db.passwordEnv, 'DB_PASSWORD')}@${host}:${Number(db.port) || 5432}/${db.name || 'app'}${db.ssl ? '?sslmode=require' : ''}`;
+  const server = db.instance ? `${host}\\${db.instance}` : `${host},${Number(db.port) || 1433}`;
+  return `Server=${server};Database=${db.name || 'app'};` + (db.auth === 'windows' ? `Trusted_Connection=Yes (as you);Driver={${db.driver}}` : `User=${db.user || 'sa'};Password=$${envName(db.passwordEnv, 'DB_PASSWORD')}`) +
+    `;Encrypt=${db.encrypt ? 'Yes' : 'No'}${db.trustCert ? ';TrustServerCertificate=Yes' : ''}`;
 }
 
 function sourceBox(s, i) {
@@ -2817,8 +4117,8 @@ function appPanel() {
     field('API address (Server API data)', textCtl(a, 'apiBase', { mono: true, ph: './api' }), 'Where the generated API runs. ./api when the app server hosts the app too.'),
     el('h3', { class: 'sec' }, 'For developers'),
     field('Custom CSS', textCtl(P, 'css', { area: true, mono: true, rows: 5, ph: '.card { box-shadow: 0 4px 12px #0002; }' })),
-    field('Custom JavaScript', textCtl(P, 'js', { area: true, mono: true, rows: 6, ph: '// Runs after the app starts. S is the state; call render() after changing it.' }),
-      'Runs after the app starts, with S, render(), add(), update(), remove(), go() and toast() available. Components can also run code (Run code step) and hold raw HTML.'),
+    field('Custom JavaScript', textCtl(P, 'js', { area: true, mono: true, rows: 6, ph: '// Runs before the first render. S is the state; call render() after changing it.' }),
+      'Runs before the first render, so functions it defines can be used in {{ }} and steps. S, render(), add(), update(), remove(), go() and toast() are available. Components can also run code (Run code step) and hold raw HTML.'),
   ];
 }
 
@@ -2857,6 +4157,7 @@ function renderInspector() {
   for (const [ev, label] of T.ev || []) out.push(eventEditor(n, ev, label, evSrc));
   out.push(namesHint(evSrc));
   if (!isRoot) out.push(field('Show only when', textCtl(n.props, 'show', { mono: true, ph: 'always (or an expression)', key: 'show:' + n.id }), 'A JavaScript expression; hidden when false.'));
+  out.push(layoutEditor(n, parent));
   out.push(styleEditor(n));
   if (!isRoot) {
     const sibs = parent.children, i = sibs.indexOf(n);
@@ -2944,17 +4245,143 @@ function stepField(s, k, t, l, src, key) {
   return null;
 }
 
+// --- Layout tools: where a part sits, how big it is, and how a container
+// arranges its children. Like Godot's anchors and size flags, shown as pictures.
+
+// CSS shorthand ("8 12") to four sides and back.
+function sides(v) {
+  const a = String(v ?? '').trim().split(/\s+/).filter(Boolean);
+  if (!a.length) return ['', '', '', ''];
+  const [t, r = t, b = t, l = r] = a;
+  return [t, r, b, l];
+}
+function joinSides(list) {
+  if (list.every(x => x === '')) return '';
+  const [t, r, b, l] = list.map(x => (x === '' ? '0' : x));
+  if (t === r && r === b && b === l) return t;
+  if (t === b && r === l) return `${t} ${r}`;
+  if (r === l) return `${t} ${r} ${b}`;
+  return `${t} ${r} ${b} ${l}`;
+}
+
+function chips(options, current, onPick) {
+  return el('div', { class: 'chips' }, options.map(([v, label, tip]) =>
+    el('button', { type: 'button', title: tip || label, 'aria-pressed': String(current === v), onclick: () => onPick(v) }, label)));
+}
+
+// How a part's parent lays out its children.
+function parentDir(parent) {
+  if (!parent) return 'col';
+  if (parent.type === 'row') return 'row';
+  if (parent.type === 'grid') return 'grid';
+  if (parent.type === 'list') return !parent.props.layout || parent.props.layout === 'row' ? 'row' : 'col';
+  return 'col';
+}
+
+function anchorPicker(st, onPick) {
+  const pos = (a, start, end, size, thin) => (a === 's' ? `${start}:7px;${size}:${thin}px` : a === 'e' ? `${end}:7px;${size}:${thin}px`
+    : a === 'c' ? `${start}:calc(50% - ${thin / 2}px);${size}:${thin}px` : `${start}:7px;${end}:7px`);
+  return el('div', { class: 'anchors', role: 'group', 'aria-label': 'Anchor presets' }, Object.entries(PINS).map(([k, [h, v]]) =>
+    el('button', { type: 'button', title: PIN_NAMES[k], 'aria-label': PIN_NAMES[k], 'aria-pressed': String(st.pin === k), onclick: () => onPick(k) },
+      el('i', { style: pos(h, 'left', 'right', 'width', 8) + ';' + pos(v, 'top', 'bottom', 'height', 6) }))));
+}
+
+function boxModel(st, n) {
+  const make = (key, cls) => {
+    const vals = sides(st[key]);
+    return ['t', 'r', 'b', 'l'].map((side, i) => {
+      const c = el('input', { class: side, value: vals[i], placeholder: '0', 'aria-label': `${key} ${['top', 'right', 'bottom', 'left'][i]}`, title: `${titleCase(key)}, ${['top', 'right', 'bottom', 'left'][i]} (px)` });
+      c.addEventListener('input', () => {
+        const now = sides(st[key]);
+        now[i] = c.value.trim();
+        st[key] = joinSides(now);
+        touch('box' + key + n.id);
+      });
+      return c;
+    });
+  };
+  return el('div', { class: 'boxmodel' }, el('span', { class: 'tag' }, 'margin'), make('margin'),
+    el('div', { class: 'inner' }, el('span', { class: 'tag' }, 'padding'), make('padding'), el('div', { class: 'core' }, n.type === 'stack' && !n.name ? 'content' : nodeLabel(n))));
+}
+
+function layoutEditor(n, parent) {
+  n.style ||= {};
+  const st = n.style, p = n.props, dir = parentDir(parent);
+  const redo = () => touch(null, true);
+  const out = [el('b', {}, 'Layout')];
+  const lbl = text => el('div', { class: 'lbl' }, text);
+
+  if (parent) {
+    out.push(lbl('Position'), chips([['flow', 'In the flow', 'Placed after the part before it'], ['pin', 'Pinned', 'Placed by an anchor inside its parent, on top of the others']],
+      st.pin ? 'pin' : 'flow', v => {
+        if (v === 'pin' && !st.pin) Object.assign(st, { pin: 'tl', ox: '0', oy: '0' });
+        if (v === 'flow') { delete st.pin; delete st.ox; delete st.oy; }
+        redo();
+      }));
+    if (st.pin) {
+      out.push(lbl('Anchor (drag it in the preview to shift it)'), anchorPicker(st, k => { st.pin = k; redo(); }));
+      const [h, v] = PINS[st.pin] || 'ss';
+      out.push(el('div', { class: 'sizerow', style: 'margin-top: 6px' }, el('span', {}, 'Shift'),
+        el('div', { class: 'inline' }, h === 'f' ? el('span', { class: 'muted small' }, 'x: fills') : textCtl(st, 'ox', { type: 'number', ph: 'x', key: 'ox' + n.id }),
+          v === 'f' ? el('span', { class: 'muted small' }, 'y: fills') : textCtl(st, 'oy', { type: 'number', ph: 'y', key: 'oy' + n.id })),
+        el('span', { class: 'muted small' }, 'px')));
+    } else if (dir !== 'grid') {
+      const names = dir === 'row' ? [['start', 'Top'], ['center', 'Middle'], ['end', 'Bottom'], ['stretch', 'Stretch']] : [['start', 'Left'], ['center', 'Center'], ['end', 'Right'], ['stretch', 'Stretch']];
+      out.push(lbl(dir === 'row' ? 'Line up in the row' : 'Line up across'), chips([['', 'Auto'], ...names], st.self || '', v => { st.self = v; redo(); }));
+    }
+  }
+
+  out.push(lbl('Size'));
+  for (const [key, name, def] of [['w', 'Width', '160'], ['h', 'Height', '120']]) {
+    const mode = !st[key] ? 'auto' : st[key] === 'fill' ? 'fill' : 'fixed';
+    const tip = key === 'w' ? (dir === 'row' ? 'Takes the free space in the row' : 'As wide as its parent') : dir === 'row' ? 'As tall as the row' : 'Takes the free space down its parent';
+    out.push(el('div', { class: 'sizerow' }, el('span', {}, name),
+      chips([['auto', 'Auto', 'Fits its content'], ['fill', 'Fill', tip], ['fixed', 'Fixed', 'A set size (or drag the handles in the preview)']], mode, v => {
+        st[key] = v === 'auto' ? '' : v === 'fill' ? 'fill' : mode === 'fixed' ? st[key] : def;
+        redo();
+      }),
+      mode === 'fixed' ? textCtl(st, key, { ph: 'px or %', key: key + n.id }) : el('span')));
+  }
+  out.push(el('div', { class: 'sizerow' }, el('span', {}, 'Max width'), textCtl(st, 'width', { ph: 'none', key: 'maxw' + n.id }), el('span', { class: 'muted small' }, 'px or %')));
+
+  if (['stack', 'card', 'row'].includes(n.type)) {
+    const row = n.type === 'row';
+    const justify = p.justify || 'start', align = p.align || (row ? 'center' : 'stretch');
+    const grid = el('div', { class: 'aligngrid', role: 'group', 'aria-label': 'Line up the children' });
+    const v3 = ['start', 'center', 'end'];
+    for (const y of v3) for (const x of v3) {
+      const [j, a] = row ? [x, y] : [y, x];
+      const words = { start: row ? 'top' : 'left', center: 'middle', end: row ? 'bottom' : 'right' };
+      grid.append(el('button', {
+        type: 'button', title: `Children ${row ? 'from the ' + { start: 'left', center: 'middle', end: 'right' }[x] : 'from the ' + { start: 'top', center: 'middle', end: 'bottom' }[y]}, lined up ${words[a] || a}`,
+        'aria-pressed': String(justify === j && align === a), onclick: () => { p.justify = j; p.align = a; redo(); },
+      }));
+    }
+    out.push(lbl('Children'), el('div', { class: 'inline', style: 'align-items: flex-start; gap: 10px' }, grid,
+      el('div', { style: 'flex: 1; display: grid; gap: 5px' },
+        chips([['packed', 'Packed'], ['between', 'Spread out', 'Space spread evenly between them']], justify === 'between' ? 'between' : 'packed', v => { p.justify = v === 'between' ? 'between' : 'start'; redo(); }),
+        chips([['line', 'Lined up'], ['stretch', 'Stretched', row ? 'As tall as the row' : 'As wide as the ' + (n.type === 'card' ? 'card' : 'stack')]], align === 'stretch' ? 'stretch' : 'line', v => { p.align = v === 'stretch' ? 'stretch' : row ? 'center' : 'start'; redo(); }),
+        el('div', { class: 'inline' }, el('span', { class: 'muted small' }, 'Gap'), textCtl(st, 'gap', { type: 'number', ph: row ? '8' : '12', key: 'gap' + n.id }), el('span', { class: 'muted small' }, 'px')))));
+  } else if (n.type === 'grid') {
+    out.push(lbl('Gap between cells'), el('div', { class: 'inline' }, textCtl(st, 'gap', { type: 'number', ph: '12', key: 'gap' + n.id }), el('span', { class: 'muted small' }, 'px')));
+  }
+
+  out.push(lbl('Margin and padding (px)'), boxModel(st, n));
+  return el('div', { class: 'lay' }, out);
+}
+
 function styleEditor(n) {
   n.style ||= {};
   const st = n.style, fields = [];
   for (const [k, , l, , kind, o] of STYLE_PROPS) {
+    if (LAYOUT_KEYS.has(k)) continue;
     if (kind === 'color') fields.push(field(l, colorCtl(st, k)));
     else if (kind === 'sel') fields.push(field(l, selectCtl(st, k, o, { structural: false })));
     else fields.push(field(l, textCtl(st, k, { ph: k === 'border' ? '1px solid #ccc' : 'e.g. 12', key: 'st' + k + n.id })));
   }
   fields.push(field('CSS class', textCtl(n.props, 'cls', { mono: true, key: 'cls' + n.id }), 'Style it from App › Custom CSS.'));
   fields.push(field('More CSS', textCtl(st, 'css', { area: true, mono: true, rows: 2, ph: 'box-shadow: 0 2px 8px #0002', key: 'stcss' + n.id })));
-  const used = Object.values(st).filter(v => v && String(v).trim()).length;
+  const used = STYLE_PROPS.filter(([k]) => !LAYOUT_KEYS.has(k) && st[k] && String(st[k]).trim()).length + (st.css?.trim() ? 1 : 0) + (n.props.cls ? 1 : 0);
   return el('details', { open: used ? true : null }, el('summary', {}, 'Style' + (used ? ` (${used})` : '')), fields);
 }
 
@@ -3002,10 +4429,11 @@ function refreshPreview() {
   try {
     doc = makeGen(P, 'design', { sel, interact: ui.mode === 'interact', route: curPage().path, scroll: ui.scroll }).html();
   } catch (error) {
-    logLine('error', 'Engine: ' + error.message);
+    logLine('error', 'Engine: ' + error.message, error.stack);
     return;
   }
   $('consoleList').replaceChildren();
+  docLines = doc.split('\n');
   $('frame').srcdoc = doc;
 }
 
@@ -3013,9 +4441,62 @@ function postToFrame(message) {
   try { $('frame').contentWindow.postMessage(message, '*'); } catch {}
 }
 
-function logLine(level, text) {
+// The preview's last document, by line, so stack traces can show the code.
+let docLines = [];
+
+// "at on_n5_click (about:srcdoc:812:7)" (Chrome) or "on_n5_click@about:srcdoc:812:7" (Firefox, Safari).
+function parseStack(stack) {
+  const frames = [];
+  for (const line of String(stack).split('\n')) {
+    const m = /^\s*at (?:async )?(?:(.+?) \()?(.+?):(\d+):(\d+)\)?$/.exec(line) || /^\s*(.*?)@(.+?):(\d+):(\d+)$/.exec(line);
+    if (m) frames.push({ fn: (m[1] || '').replace(/^Object\.|^async /, ''), file: m[2], line: Number(m[3]), col: Number(m[4]) });
+  }
+  return frames;
+}
+
+// Which component and step a line of the generated app belongs to.
+function sourceOf(frame) {
+  const mine = /srcdoc/.test(frame.file);
+  let fn = frame.fn, step = null;
+  if (mine) {
+    for (let i = frame.line - 1; i >= 0 && i >= frame.line - 400; i--) {
+      const line = docLines[i] || '';
+      if (!step) { const m = /^\s*\/\/ step (\d+): (.*)$/.exec(line); if (m) step = 'step ' + m[1] + ' (' + m[2] + ')'; }
+      const f = /^(?:async )?function (\w+)/.exec(line);
+      if (f) { if (!fn || fn === 'eval') fn = f[1]; break; }
+    }
+  }
+  const id = (/^(?:on|list|table|submit|setup|frame)_(n\d+)/.exec(fn || '') || [])[1];
+  const hit = id && locate(id);
+  let where = null;
+  if (hit) {
+    const part = nodeLabel(hit.node);
+    const what = /^on_n\d+_(\w+)$/.exec(fn), T = TYPES[hit.node.type];
+    const ev = what && (T.ev || []).find(e => e[0] === what[1]);
+    where = part + (ev ? ' › ' + ev[1].toLowerCase() : /^setup_/.test(fn) ? ' › setup' : /^frame_/.test(fn) ? ' › every frame' : /^submit_/.test(fn) ? ' › saving' : '') + (step ? ' › ' + step : '');
+  } else if (/^page_/.test(fn || '')) where = 'Page ' + (P.pages.find(pg => 'page_' + pg.path.replace(/\W/g, '_') === fn)?.name || '');
+  return { mine, id: hit ? id : null, where, code: mine ? (docLines[frame.line - 1] || '').trim() : '' };
+}
+
+function logLine(level, text, stack) {
   const list = $('consoleList');
-  list.append(el('li', { class: level }, text));
+  const frames = parseStack(stack || '').slice(0, 12);
+  let li;
+  if (frames.length) {
+    const items = frames.map(f => {
+      const src = sourceOf(f);
+      return el('li', { class: src.mine ? 'mine' : null },
+        src.where ? el('b', {}, src.where) : (f.fn || '(anonymous)'),
+        src.mine ? ` · line ${f.line}` : ` · ${f.file.split('/').pop()}:${f.line}`,
+        src.id ? el('button', { class: 'link', onclick: () => { select(src.id); if (innerWidth <= 900) setPane('inspect'); } }, 'Select it') : null,
+        src.code ? el('code', {}, src.code) : null);
+    });
+    const server = String(stack).split('\n\nServer stack:\n')[1];
+    li = el('li', { class: level }, el('details', { open: level === 'error' ? true : null },
+      el('summary', {}, text), el('ul', { class: 'frames' }, items),
+      server ? el('ul', { class: 'frames' }, el('li', {}, el('b', {}, 'On the server'), el('code', {}, server.trim()))) : null));
+  } else li = el('li', { class: level }, text);
+  list.append(li);
   while (list.children.length > 60) list.firstChild.remove();
   $('console').scrollTop = 1e9;
 }
@@ -3024,7 +4505,14 @@ addEventListener('message', e => {
   if (e.source !== $('frame').contentWindow || !e.data || !e.data.mpe) return;
   const m = e.data;
   if (m.type === 'select') { select(m.id); if (m.id && innerWidth <= 900) setPane('inspect'); }
-  if (m.type === 'log') logLine(m.level, m.text);
+  if (m.type === 'move' && m.target) { moveNode(m.id, m.target, m.pos); select(m.id); }
+  if (m.type === 'drop') {
+    if (m.what.startsWith('move:')) { if (m.target) moveNode(m.what.slice(5), m.target, m.pos); }
+    else if (TYPES[m.what]) insertNode(m.what, m.target, m.pos || 'inside');
+  }
+  if (m.type === 'resize') resizeNode(m.id, m.w, m.h);
+  if (m.type === 'nudge') nudgeNode(m.id, m.dx, m.dy);
+  if (m.type === 'log') logLine(m.level, m.text, m.stack);
   if (m.type === 'scroll') ui.scroll = m.y;
   if (m.mpe === 'page' || m.type === 'page') {
     const page = P.pages.find(p => p.path === m.path);
@@ -3077,7 +4565,11 @@ function startTerminal() {
   try {
     const run = new Function('io', makeGen(P, 'term').core() + '\nreturn main(io);');
     Promise.resolve(run(io)).then(() => { if (!stopped) write('\n[The program ended. Press Restart to run it again.]\n'); },
-      error => { if (!stopped) write('\n[Error: ' + error.message + ']\n'); });
+      error => {
+        if (stopped) return;
+        write('\n[Error: ' + error.message + ']\n');
+        console.error(error);
+      });
   } catch (error) {
     write('[Error: ' + error.message + ']\n');
   }
@@ -3136,32 +4628,40 @@ function openNew() {
 }
 
 function openExport() {
-  const t = P.targets, api = apiSources(P).length > 0;
-  const opt = (key, label, note, disabled) => {
-    const c = el('input', { type: 'checkbox', checked: !disabled && t[key] !== false && (t[key] || ['cli', 'api', 'app'].includes(key)), disabled });
-    c.addEventListener('change', () => { t[key] = c.checked; commit(); showExportFiles(); });
+  const t = P.targets ||= {}, tt = targetsFor(P), api = tt.api, db = dbOf(P);
+  const opt = (key, label, note, { disabled, checked } = {}) => {
+    const c = el('input', { type: 'checkbox', checked: checked ?? !!t[key], disabled });
+    c.addEventListener('change', () => { t[key] = c.checked; commit(); openExport(); });
     return el('label', {}, c, el('span', {}, label, el('small', {}, note)));
   };
-  const db = el('select', { disabled: !api }, [['json', 'JSON file (nothing to install)'], ['sqlite', 'SQLite (Node 22.13+, built in)'], ['postgres', 'PostgreSQL (pg package, Docker compose)']].map(([v, l]) => el('option', { value: v }, l)));
-  db.value = t.db || 'json';
-  db.addEventListener('change', () => { t.db = db.value; commit(); showExportFiles(); });
-  const why = api ? '' : ' Needs a data source kept in "Server API".';
+  const preset = (label, values) => el('button', { onclick: () => { Object.assign(t, values); commit(); openExport(); } }, label);
+  const dbName = DB_KINDS.find(k => k[0] === db.kind)[1] + (db.kind === 'mssql' && db.auth === 'windows' ? ' with Windows sign-in' : '');
   $('targetList').replaceChildren(
-    el('label', {}, el('input', { type: 'checkbox', checked: true, disabled: true }), el('span', {}, 'Web server (Node)', el('small', {}, 'server/web.js serves the app. Always included; no packages.'))),
-    opt('python', 'Web server (Python)', 'server/web.py, standard library only.'),
+    el('div', { class: 'btnrow', style: 'margin-top: 0' }, preset('Just the app', { pwa: true, project: false, node: false, python: false, nginx: false, docker: false, sql: false, cli: false }),
+      preset('Everything', { pwa: true, project: true, node: true, python: true, nginx: true, docker: true, sql: true, cli: true })),
+    el('h4', {}, 'The app'),
+    el('label', {}, el('input', { type: 'checkbox', checked: true, disabled: true }), el('span', {}, 'index.html', el('small', {}, 'The whole app: HTML, CSS and JavaScript in one file. Its icon is built in.'))),
+    opt('pwa', 'Installable', 'manifest.json and icon.png, so it can be installed' + (P.app.offline !== false ? ', and sw.js so it works offline (App › Works offline).' : '.'), { checked: tt.pwa }),
+    opt('project', 'Project file', 'project.mpe.json, to open in the engine again (Save does the same).'),
+    el('h4', {}, 'Servers'),
+    opt('node', 'Node server', 'server/server.js: the app' + (api ? ' and its data API' : '') + ', one file.' + (tt.nodeAuto ? ' Needed for Server API data, unless you pick Python.' : ''), { checked: tt.node, disabled: tt.nodeAuto }),
+    opt('python', 'Python server', 'server/server.py: the app' + (api ? ' and its data API' : '') + ', one file, standard library' + (api && ['postgres', 'mssql'].includes(db.kind) ? ' plus the database driver.' : '.')),
     opt('nginx', 'nginx config', 'server/nginx.conf for hosting the files' + (api ? ' and passing /api on.' : '.')),
-    opt('api', 'API server', 'server/api.js: REST API for Server API data, with CORS.' + why, !api),
-    opt('app', 'Application server', 'server/app.js: the app and its API together, with server-side rules.' + why, !api),
-    el('label', {}, el('span', { style: 'min-width: 13px' }), el('span', { style: 'flex: 1' }, 'Database', el('small', {}, 'Where the API keeps its data.' + why), db)),
-    opt('docker', 'Docker', 'Dockerfile and docker-compose.yml' + (api ? ' (with PostgreSQL when chosen).' : '.')),
+    opt('docker', 'Docker', 'server/Dockerfile and docker-compose.yml' + (api && ['postgres', 'mssql'].includes(db.kind) ? ', with a ' + DB_KINDS.find(k => k[0] === db.kind)[1] + ' container.' : '.'), { disabled: !(tt.node || tt.python), checked: tt.docker && (tt.node || tt.python) }),
+    opt('sql', 'SQL script', 'server/schema.sql: the tables and sample rows, to make them by hand.' + (api && db.kind !== 'json' ? '' : ' Needs a SQL database.'), { disabled: !api || db.kind === 'json', checked: tt.sql }),
+    api ? el('p', { class: 'muted small', style: 'margin: 0 0 6px 21px' }, 'Data is kept in ' + dbName + '. ',
+      el('button', { class: 'link', onclick: () => { $('exportDlg').close(); leftTab = 'data'; setPane('build'); renderLeft(); } }, 'Change it in Data')) : null,
+    el('h4', {}, 'More'),
     opt('cli', 'Terminal version', 'cli/app.js: the same app as a text menu, for Node.'));
   showExportFiles();
-  $('exportDlg').showModal();
+  if (!$('exportDlg').open) $('exportDlg').showModal();
 }
 
 function showExportFiles() {
-  const files = genFiles(P);
-  $('exportFiles').textContent = Object.keys(files).concat(['icon-192.png', 'icon-512.png']).sort().join('\n');
+  const files = genFiles(P), names = Object.keys(files);
+  if (targetsFor(P).pwa) names.push('icon.png');
+  $('exportFiles').textContent = names.sort().map(n => n.padEnd(28) + (files[n] ? (files[n].length / 1024).toFixed(1) + ' KB' : '')).join('\n') +
+    `\n\n${names.length} file${names.length === 1 ? '' : 's'}` + (names.includes('README.md') ? ' (README.md explains how to run them)' : '');
 }
 
 // --- About, with a change log read from the repository's main branch.
@@ -3205,8 +4705,8 @@ function validProject(p) {
 function init() {
   let saved = null;
   try { saved = JSON.parse(localStorage.getItem('mpe:project')); } catch {}
-  P = validProject(saved) ? saved : STARTERS[0].make();
-  P.targets ||= blankProject().targets;
+  P = upgrade(validProject(saved) ? saved : STARTERS[0].make());
+  loadVcs();
   pageId = P.pages[0].id;
   resetHistory();
 
@@ -3220,7 +4720,9 @@ function init() {
   $('redoBtn').addEventListener('click', () => undoRedo(false));
   $('newBtn').addEventListener('click', openNew);
   $('newClose').addEventListener('click', () => $('newDlg').close());
-  $('saveBtn').addEventListener('click', () => download(slugify(P.app.name) + '.mpe.json', JSON.stringify(P, null, 2) + '\n', 'application/json'));
+  // The saved file carries the History (commits and branches) along with the project.
+  $('saveBtn').addEventListener('click', () => download(slugify(P.app.name) + '.mpe.json',
+    JSON.stringify(Object.keys(vcs.commits).length ? { ...P, history: vcs } : P, null, 2) + '\n', 'application/json'));
   $('openBtn').addEventListener('click', () => $('openFile').click());
   $('openFile').addEventListener('change', async () => {
     const file = $('openFile').files[0];
@@ -3229,8 +4731,8 @@ function init() {
     try {
       const p = JSON.parse(await file.text());
       if (!validProject(p)) throw new Error('Not a Mini PWA Engine project');
-      p.targets ||= blankProject().targets;
-      loadProject(p);
+      const { history, ...project } = p;
+      loadProject(project, history);
       toast('Opened ' + file.name);
     } catch (error) {
       toast("Couldn't open it: " + error.message);
@@ -3242,6 +4744,7 @@ function init() {
   $('exportHtml').addEventListener('click', () => download('index.html', makeGen(P, 'web').html(), 'text/html'));
   $('aboutBtn').addEventListener('click', openAbout);
   $('aboutClose').addEventListener('click', () => $('aboutDlg').close());
+  $('diffClose').addEventListener('click', () => $('diffDlg').close());
   $('clearConsole').addEventListener('click', () => $('consoleList').replaceChildren());
   $('resetData').addEventListener('click', () => {
     try { for (const k of Object.keys(localStorage)) if (k.startsWith('mpe-preview:')) localStorage.removeItem(k); } catch {}

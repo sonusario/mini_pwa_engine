@@ -2,7 +2,7 @@
 // Pages are network-first (so updates show up), other files are cache-first and
 // refreshed in the background. API requests always go to the network.
 
-const CACHE = 'mini-pwa-engine-v1';
+const CACHE = 'mini-pwa-engine-v2';
 const FILES = ['./', './index.html', './manifest.json', './icon.svg', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', event => {

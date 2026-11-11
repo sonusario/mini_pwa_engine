@@ -11,8 +11,9 @@ self.addEventListener('install', event => {
 
 self.addEventListener('activate', event => {
   event.waitUntil(
+    // Only this app's old caches: every app on this domain shares one Cache Storage.
     caches.keys()
-      .then(names => Promise.all(names.filter(name => name !== CACHE).map(name => caches.delete(name))))
+      .then(names => Promise.all(names.filter(name => name.startsWith('mini-pwa-engine-') && name !== CACHE).map(name => caches.delete(name))))
       .then(() => self.clients.claim())
   );
 });

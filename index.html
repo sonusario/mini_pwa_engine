@@ -464,8 +464,9 @@ self.addEventListener('install', event => {
 
 self.addEventListener('activate', event => {
   event.waitUntil(
+    // Only this app's old caches: apps that share a domain share one Cache Storage.
     caches.keys()
-      .then(names => Promise.all(names.filter(name => name !== CACHE).map(name => caches.delete(name))))
+      .then(names => Promise.all(names.filter(name => name.startsWith(CACHE.slice(0, CACHE.lastIndexOf('-') + 1)) && name !== CACHE).map(name => caches.delete(name))))
       .then(() => self.clients.claim())
   );
 });

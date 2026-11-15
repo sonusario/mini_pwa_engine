@@ -2,7 +2,7 @@
 // Pages are network-first (so updates show up), other files are cache-first and
 // refreshed in the background. API requests always go to the network.
 
-const CACHE = 'mini-pwa-engine-v2';
+const CACHE = 'mini-pwa-engine-v3';
 const FILES = ['./', './index.html', './manifest.json', './icon.svg', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', event => {
@@ -22,6 +22,8 @@ self.addEventListener('fetch', event => {
   const request = event.request;
   const url = new URL(request.url);
   if (request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.includes('/api/')) return;
+  // The About panel's Check for update and Reload ask for the live copy.
+  if (request.cache === 'reload' && request.mode !== 'navigate') return;
 
   if (request.mode === 'navigate') {
     event.respondWith(
